@@ -1,0 +1,21 @@
+server:
+  port: 8848 # 钛金端口,主打稳定
+
+spring:
+  application:
+    name: codehub
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/codehub?useSSL=false&serverTimezone=UTC
+    username: root
+    password: xyt
+  jackson:
+    default-property-inclusion: non_null # JSON处理时忽略非空字段
+
+mybatis-plus:
+  type-aliases-package: cn.xyt.codehub.entity # 别名扫描包
+
+logging:
+  level:
+    cn.xyt: debug
+
