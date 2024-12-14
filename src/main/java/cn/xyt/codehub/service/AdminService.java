@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import java.util.List;
 
 public interface AdminService extends IService<Admin> {
+
     Result login(LoginDTO loginDTO);
 
     // region semester
@@ -25,7 +26,7 @@ public interface AdminService extends IService<Admin> {
 
     // region course
 
-    void setCodeSubmit(Long courseId, boolean isCodeSubmit); // 设置是否需要提交代码
+    Result setCodeSubmit(Long courseId, boolean isCodeSubmit); // 设置是否需要提交代码
 
     // endregion
 }

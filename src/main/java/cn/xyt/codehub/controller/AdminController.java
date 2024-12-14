@@ -4,9 +4,11 @@ import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.SemesterDTO;
 import cn.xyt.codehub.entity.Course;
 import cn.xyt.codehub.entity.Semester;
+import cn.xyt.codehub.entity.Teacher;
 import cn.xyt.codehub.service.AdminService;
 import cn.xyt.codehub.service.CourseService;
 import cn.xyt.codehub.service.SemesterService;
+import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.DatabaseBackupUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,6 +65,9 @@ public class AdminController {
 
     @Resource
     private CourseService courseService;
+
+    @Resource
+    private TeacherService teacherService;
 
     // region database-backup-methods
 
@@ -199,8 +204,7 @@ public class AdminController {
      */
     @PutMapping("/course/set-code-submit/{courseId}")
     public Result setCodeSubmit(@PathVariable Long courseId, @RequestParam boolean isCodeSubmit) {
-        adminService.setCodeSubmit(courseId, isCodeSubmit);
-        return Result.ok("课程提交代码设置成功！");
+        return adminService.setCodeSubmit(courseId, isCodeSubmit);
     }
 
     /**
@@ -216,5 +220,43 @@ public class AdminController {
 
     // endregion
 
+    // region teacher-manage
 
+    // 新增教师
+    @PostMapping("teacher/add")
+    public Result addTeacher(@RequestBody Teacher teacher) {
+        boolean isSaved = teacherService.save(teacher);
+        return isSaved ? Result.ok("新增教师成功") : Result.fail("新增教师失败");
+    }
+
+    // 删除教师
+    @DeleteMapping("teacher/delete/{id}")
+    public Result deleteTeacher(@PathVariable Long id) {
+        boolean isRemoved = teacherService.removeById(id);
+        return isRemoved ? Result.ok("删除教师成功") : Result.fail("删除教师失败");
+    }
+
+    // 修改教师信息
+    @PutMapping("teacher/update")
+    public Result updateTeacher(@RequestBody Teacher teacher) {
+        boolean isUpdated = teacherService.updateById(teacher);
+        return isUpdated ? Result.ok("更新教师信息成功") : Result.fail("更新教师信息失败");
+    }
+
+    // 查询单个教师信息
+    @GetMapping("teacher/get/{id}")
+    public Result getTeacher(@PathVariable Long id) {
+        Teacher teacher = teacherService.getById(id);
+        return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
+    }
+
+    // 查询所有教师信息
+    @GetMapping("teacher/list")
+    public Result listTeachers() {
+        List<Teacher> teachers = teacherService.list();
+        return Result.ok(teachers);
+    }
+
+
+    // endregion
 }
