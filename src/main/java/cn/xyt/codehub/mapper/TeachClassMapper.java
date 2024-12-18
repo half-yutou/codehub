@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface TeachClassMapper extends BaseMapper<TeachClass> {
     @Select("SELECT s.* FROM student s " +
-            "JOIN student_class sc ON s.id = sc.student_number " +
+            "JOIN student_class sc ON s.student_number = sc.student_number " +
             "WHERE sc.class_id = #{classId}")
     List<Student> getStudentsByClassId(@Param("classId") Long classId);
 }

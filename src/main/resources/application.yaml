@@ -12,6 +12,18 @@ spring:
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
 
+  mail:
+    host: smtp.qq.com           # 邮件服务器主机，例如 smtp.gmail.com
+    port: 587                        # 邮件服务器端口，默认 587
+    username: 3369726918@qq.com   # 发件人邮箱
+    password: zysdhixzjmiedabf    # 发件人邮箱密码或应用专用密码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: cn.xyt.codehub.entity # 别名扫描包
