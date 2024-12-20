@@ -41,7 +41,7 @@ public class UserController {
     }
 
     @Operation(summary = "用户注册")
-    @PostMapping("register")
+    @PostMapping("/register")
     public Result register(@RequestBody RegisterDTO registerDTO) {
         String role = registerDTO.getRole();
         return switch (role) {
@@ -53,7 +53,7 @@ public class UserController {
     }
 
     @Operation(summary = "用户登出")
-    @PostMapping("logout")
+    @PostMapping("/logout")
     public Result logout() {
         StpUtil.logout();
         return Result.ok();

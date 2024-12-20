@@ -11,6 +11,7 @@ import cn.xyt.codehub.service.SemesterService;
 import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.DatabaseBackupUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,20 +62,17 @@ public class AdminController {
     private AdminService adminService;
 
     @Resource
-    private SemesterService semesterService;
-
-    @Resource
     private CourseService courseService;
 
-    @Resource
-    private TeacherService teacherService;
 
     // region database-backup-methods
+
 
     /**
      * 手动触发数据库备份
      * @return 备份文件路径
      */
+    @Operation(summary = "手动触发数据库备份")
     @GetMapping("/backup")
     public Result manualBackup() {
         try {
@@ -90,6 +88,7 @@ public class AdminController {
      * @param fileName 文件名
      * @return 文件内容
      */
+    @Operation(summary = "下载备份文件")
     @GetMapping("/backup/download/{fileName}")
     public ResponseEntity<?> downloadBackup(@PathVariable String fileName) {
         File file = new File(backupDir + File.separator + fileName);
@@ -117,6 +116,7 @@ public class AdminController {
      * 查询所有备份文件名
      * @return 所有备份文件名列表
      */
+    @Operation(summary = "查询所有备份文件名")
     @GetMapping("/backup/list")
     public Result listBackupFiles() {
         File dir = new File(backupDir);
@@ -141,59 +141,7 @@ public class AdminController {
 
     // endregion
 
-    // region Semester
 
-    /**
-     * 创建学期
-     * @param semesterDTO 学期对象
-     * @return 操作结果
-     */
-    @PostMapping("/semester/create")
-    public Result createSemester(@RequestBody SemesterDTO semesterDTO) {
-        semesterService.createSemester(semesterDTO);
-        return Result.ok("学期创建成功");
-    }
-
-    @GetMapping("/semester/delete/{semesterId}")
-    public Result deleteSemester(@PathVariable Long semesterId) {
-        semesterService.removeById(semesterId);
-        return Result.ok("学期删除成功");
-    }
-
-    @PostMapping("/semester/update")
-    public Result updateSemester(@RequestBody Semester semester) {
-        semesterService.updateById(semester);
-        return Result.ok("学期更新成功");
-    }
-
-    /**
-     * 查询所有学期
-     * @return 学期列表
-     */
-    @GetMapping("/semester/list")
-    public Result listSemesters() {
-        List<Semester> list = semesterService.list(new QueryWrapper<Semester>().orderByAsc("start_date"));
-        return Result.ok(list);
-    }
-
-    /**
-     * 设置当前学期
-     * @param semesterId 学期ID
-     * @return 操作结果
-     */
-    @PutMapping("/semester/set-current/{semesterId}")
-    public Result setCurrentSemester(@PathVariable Long semesterId) {
-        adminService.setCurrentSemester(semesterId);
-        return Result.ok("当前学期设置成功");
-    }
-
-    @GetMapping("/semester/reset")
-    public Result resetCurrentSemester() {
-        adminService.resetCurrentSemester();
-        return Result.ok("当前学期重置成功");
-    }
-
-    // endregion
 
     // region course
     /**
@@ -202,6 +150,7 @@ public class AdminController {
      * @param isCodeSubmit 是否需要提交代码
      * @return 操作结果
      */
+    @Operation(summary = "设置课程是否需要提交代码")
     @PutMapping("/course/set-code-submit/{courseId}")
     public Result setCodeSubmit(@PathVariable Long courseId, @RequestParam boolean isCodeSubmit) {
         return adminService.setCodeSubmit(courseId, isCodeSubmit);
@@ -211,6 +160,7 @@ public class AdminController {
      * 查询所有课程
      * @return 课程列表
      */
+    @Operation(summary = "查询所有课程")
     @GetMapping("/course/list")
     public Result listCourses() {
         List<Course> list = courseService.list(
@@ -220,43 +170,5 @@ public class AdminController {
 
     // endregion
 
-    // region teacher-manage
 
-    // 新增教师
-    @PostMapping("teacher/add")
-    public Result addTeacher(@RequestBody Teacher teacher) {
-        boolean isSaved = teacherService.save(teacher);
-        return isSaved ? Result.ok("新增教师成功") : Result.fail("新增教师失败");
-    }
-
-    // 删除教师
-    @DeleteMapping("teacher/delete/{id}")
-    public Result deleteTeacher(@PathVariable Long id) {
-        boolean isRemoved = teacherService.removeById(id);
-        return isRemoved ? Result.ok("删除教师成功") : Result.fail("删除教师失败");
-    }
-
-    // 修改教师信息
-    @PutMapping("teacher/update")
-    public Result updateTeacher(@RequestBody Teacher teacher) {
-        boolean isUpdated = teacherService.updateById(teacher);
-        return isUpdated ? Result.ok("更新教师信息成功") : Result.fail("更新教师信息失败");
-    }
-
-    // 查询单个教师信息
-    @GetMapping("teacher/get/{id}")
-    public Result getTeacher(@PathVariable Long id) {
-        Teacher teacher = teacherService.getById(id);
-        return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
-    }
-
-    // 查询所有教师信息
-    @GetMapping("teacher/list")
-    public Result listTeachers() {
-        List<Teacher> teachers = teacherService.list();
-        return Result.ok(teachers);
-    }
-
-
-    // endregion
 }
