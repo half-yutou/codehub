@@ -6,6 +6,7 @@ import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.service.AssignmentService;
 import cn.xyt.codehub.service.TeachClassService;
 import cn.xyt.codehub.util.MailUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -69,6 +70,40 @@ public class AssignmentController {
         return Result.ok(assignments);
     }
 
+    /**
+     * 查询单个作业信息
+     */
+    @Operation(summary = "查询单个作业信息")
+    @GetMapping("/get/{id}")
+    public Result getAssignment(@PathVariable Long id) {
+        Assignment assignment = assignmentService.getById(id);
+        return assignment != null ? Result.ok(assignment) : Result.fail("作业信息不存在");
+    }
+
+    /**
+     * 根据课程ID查询作业列表
+     */
+    @Operation(summary = "根据班级ID查询作业列表")
+    @GetMapping("/list/class/{courseId}")
+    public Result listAssignmentsByClassId(@PathVariable Long courseId) {
+        return Result.ok(assignmentService.list(
+                new QueryWrapper<Assignment>()
+                        .eq("class_id", courseId)));
+    }
+
+    /**
+     * 根据学生查询作业列表
+     */
+    @Operation(summary = "根据学生查询作业列表")
+    @GetMapping("/list/student/{studentId}")
+    public Result listAssignmentsByStudentId(@PathVariable Long studentId) {
+        return Result.ok(assignmentService.list(
+                new QueryWrapper<Assignment>()
+                        .eq("student_id", studentId)));
+    }
+
+
+    // endregion
 
     /**
      * 手动发送作业通知给班级所有学生
@@ -105,6 +140,6 @@ public class AssignmentController {
         return Result.ok("作业通知已发送！");
     }
 
-    // endregion
+
 
 }

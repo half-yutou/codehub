@@ -23,6 +23,9 @@ spring:
           auth: true
           starttls:
             enable: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
@@ -65,3 +68,6 @@ task:
     name: codehub
   backup:
     dir: E:\CSUcourse\Three\exp-second\codehub-backup # 备份文件存储目录
+
+submit:
+  dir: E:\CSUcourse\Three\exp-second\codehub-submit

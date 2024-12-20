@@ -25,9 +25,6 @@ import java.util.List;
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
 
     @Resource
-    private AdminMapper adminMapper;
-
-    @Resource
     private SemesterMapper semesterMapper;
 
     @Resource
