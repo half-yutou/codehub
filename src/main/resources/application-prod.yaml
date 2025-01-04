@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/codehub?useSSL=false&serverTimezone=UTC
+    username: root
+    password: mysql0618
+
+task:
+  database:
+    host: localhost
+    port: 3306
+    username: root
+    password: mysql0618
+    name: codehub
+  backup:
+    dir: /var/www/project-java/codehub-backup # 备份文件存储目录
+
+submit:
+  dir: /var/www/project-java/codehub-submit

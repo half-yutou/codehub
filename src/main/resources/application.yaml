@@ -2,19 +2,18 @@ server:
   port: 8848 # 钛金端口,主打稳定
 
 spring:
+  profiles:
+    active: dev # 默认启用开发环境
+
   application:
     name: codehub
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/codehub?useSSL=false&serverTimezone=UTC
-    username: root
-    password: xyt
+
   jackson:
     default-property-inclusion: non_null # JSON处理时忽略非空字段
 
   mail:
-    host: smtp.qq.com           # 邮件服务器主机，例如 smtp.gmail.com
-    port: 587                        # 邮件服务器端口，默认 587
+    host: smtp.qq.com            # 邮件服务器主机
+    port: 587                    # 邮件服务器端口
     username: 3369726918@qq.com   # 发件人邮箱
     password: zysdhixzjmiedabf    # 发件人邮箱密码或应用专用密码
     properties:
@@ -58,16 +57,3 @@ knife4j:
 
 sa-token:
   token-style: simple-uuid
-
-task:
-  database:
-    host: localhost
-    port: 3306
-    username: root
-    password: xyt
-    name: codehub
-  backup:
-    dir: E:\CSUcourse\Three\exp-second\codehub-backup # 备份文件存储目录
-
-submit:
-  dir: E:\CSUcourse\Three\exp-second\codehub-submit
