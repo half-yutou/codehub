@@ -1,9 +1,11 @@
 package cn.xyt.codehub.service.impl;
 
 import cn.xyt.codehub.entity.Assignment;
+import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.StudentClass;
 import cn.xyt.codehub.mapper.AssignmentMapper;
 import cn.xyt.codehub.mapper.StudentClassMapper;
+import cn.xyt.codehub.mapper.StudentMapper;
 import cn.xyt.codehub.service.AssignmentService;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -20,11 +22,20 @@ public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignm
     @Resource
     private StudentClassMapper studentClassMapper;
 
+    @Resource
+    private StudentMapper studentMapper;
+
     @Override
     public List<Assignment> listAssignmentsByStudentId(Long studentId) {
+        // 先根据studentId查询其studentNumber
+        Student student = studentMapper.selectOne(new QueryWrapper<Student>().eq("id", studentId));
+        if (student == null) {
+            throw new RuntimeException("学生不存在");
+        }
+        String studentNumber = student.getStudentNumber();
         // 先根据studentId查询其所在所有班级
         List<StudentClass> sc = studentClassMapper.selectList(
-                new QueryWrapper<StudentClass>().eq("student_id", studentId));
+                new QueryWrapper<StudentClass>().eq("student_number", studentNumber));
         if (sc.isEmpty()) {
             return List.of();
         }

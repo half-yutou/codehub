@@ -45,3 +45,18 @@ public Result updateAssignment(@RequestBody Assignment assignment): 实体类字
 @PostMapping("/register")
 public Result register(@RequestBody RegisterDTO registerDTO) : 将该对象的ClassId改为adminClass
 ```
+
+3. Course类: teacherId -> 删除
+> 课程不需要和教师绑定,同一个课程可能有多个授课教师,教师和对应教学班级绑定即可
+
+影响传参处: 无(暂未编写对应crud方法)
+
+4. `新增一个学生到指定班级`方法 : -> 传参更改
+```java
+    @Operation(summary = "新增一个学生到指定班级")
+@PutMapping("add/class/{classId}/{studentNumber}")
+public Result addSingleStudentToClass(
+        @PathVariable Long classId, 
+        @PathVariable String studentNumber) : 将原来的Student实体类改为studentNumber(学号)
+```
+> 解耦,原来方法是教师可以直接添加一个学生实体到数据库,现在更改为教师只能添加已注册的学生到班级中

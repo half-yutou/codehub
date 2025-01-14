@@ -81,7 +81,7 @@ public class AssignmentController {
     }
 
     /**
-     * 根据课程ID查询作业列表
+     * 根据班级ID查询作业列表
      */
     @Operation(summary = "根据班级ID查询作业列表")
     @GetMapping("/list/class/{classId}")

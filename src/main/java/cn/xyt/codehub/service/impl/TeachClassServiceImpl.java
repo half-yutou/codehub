@@ -55,16 +55,16 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
 
     @Override
     @Transactional
-    public boolean addSingleStudentToClass(Long classId, Student student) {
-        // 先将该学生添加到学生表(检查学生表内有无该学生)
+    public boolean addSingleStudentToClass(Long classId, String studentNumber) {
+        // 先检查学生表内有无该学生
         Student studentInDb = studentMapper.selectOne(new QueryWrapper<Student>()
-                .eq("student_number", student.getStudentNumber()));
+                .eq("student_number", studentNumber));
         if (studentInDb == null) {
-            studentMapper.insert(student);
+            throw new RuntimeException("学生不存在");
         }
 
         // 将该学生和班级信息添加到中间表
-        int i = studentClassMapper.insert(new StudentClass(student.getStudentNumber(), classId));
+        int i = studentClassMapper.insert(new StudentClass(studentNumber, classId));
         if (i == 0) {
             throw new RuntimeException("添加失败");
         }

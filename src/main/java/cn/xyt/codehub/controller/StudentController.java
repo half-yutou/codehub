@@ -32,9 +32,9 @@ public class StudentController {
 
     // 新增一个学生到指定班级
     @Operation(summary = "新增一个学生到指定班级")
-    @PutMapping("add/class/{classId}")
-    public Result addSingleStudentToClass(@PathVariable Long classId, @RequestBody Student student) {
-        return teachClassService.addSingleStudentToClass(classId, student)
+    @PutMapping("add/class/{classId}/{studentNumber}")
+    public Result addSingleStudentToClass(@PathVariable Long classId, @PathVariable String studentNumber) {
+        return teachClassService.addSingleStudentToClass(classId, studentNumber)
                 ? Result.ok("添加成功")
                 : Result.fail("添加失败");
     }

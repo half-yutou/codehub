@@ -15,8 +15,6 @@ public class Course {
 
     private String description;   // 课程描述
 
-    private String teacherId;     // 教师ID（外键）
-
     private String semesterId;    // 学期ID（外键）
 
     @TableField("is_code_submit")

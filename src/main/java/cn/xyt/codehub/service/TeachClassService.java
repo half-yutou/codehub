@@ -14,7 +14,7 @@ public interface TeachClassService extends IService<TeachClass> {
 
     List<Student> getStudentsByClassId(Long classId);
 
-    boolean addSingleStudentToClass(Long classId, Student student);
+    boolean addSingleStudentToClass(Long classId, String studentNumber);
 
     boolean deleteSingleStudentFromClass(Long classId, Long studentId);
 
