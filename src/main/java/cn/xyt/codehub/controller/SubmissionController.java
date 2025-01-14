@@ -38,11 +38,11 @@ public class SubmissionController {
     /**
      * 删除指定作业
      */
-    @Operation(summary = "删除指定作业")
+    @Operation(summary = "删除指定提交")
     @DeleteMapping("/delete/{id}")
     public Result deleteAssignment(@PathVariable Long id) {
         return submissionService.removeById(id) ?
-                Result.ok("作业删除成功！") : Result.fail("作业删除失败！");
+                Result.ok("作业提交删除成功！") : Result.fail("作业提交删除失败！");
     }
 
     /**
@@ -51,8 +51,9 @@ public class SubmissionController {
     @Operation(summary = "查询单个提交信息")
     @GetMapping("/get/{id}")
     public Result getSubmission(@PathVariable Long id) {
-        return submissionService.getById(id) != null ?
-                Result.ok(submissionService.getById(id)) : Result.fail("提交信息不存在！");
+        return submissionService.getById(id) != null
+                ? Result.ok(submissionService.getById(id))
+                : Result.fail("提交信息不存在！");
     }
 
     /**

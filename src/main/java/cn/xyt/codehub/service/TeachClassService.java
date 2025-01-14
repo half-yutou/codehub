@@ -14,10 +14,10 @@ public interface TeachClassService extends IService<TeachClass> {
 
     List<Student> getStudentsByClassId(Long classId);
 
-    Result addSingleStudentToClass(Long classId, Student student);
+    boolean addSingleStudentToClass(Long classId, Student student);
 
-    Result deleteSingleStudentFromClass(Long classId, Long studentId);
+    boolean deleteSingleStudentFromClass(Long classId, Long studentId);
 
-    Result importStudents(Long classId, MultipartFile file) throws IOException;
+    boolean importStudents(Long classId, MultipartFile file) throws IOException;
 
 }

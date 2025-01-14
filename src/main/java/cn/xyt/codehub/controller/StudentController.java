@@ -34,21 +34,27 @@ public class StudentController {
     @Operation(summary = "新增一个学生到指定班级")
     @PutMapping("add/class/{classId}")
     public Result addSingleStudentToClass(@PathVariable Long classId, @RequestBody Student student) {
-        return teachClassService.addSingleStudentToClass(classId, student);
+        return teachClassService.addSingleStudentToClass(classId, student)
+                ? Result.ok("添加成功")
+                : Result.fail("添加失败");
     }
 
     // 删除一个学生在指定班级
     @Operation(summary = "删除一个学生在指定班级")
     @DeleteMapping("/delete/class/{classId}/{studentId}")
     public Result deleteSingleStudentFromClass(@PathVariable Long classId, @PathVariable Long studentId) {
-        return teachClassService.deleteSingleStudentFromClass(classId, studentId);
+        return teachClassService.deleteSingleStudentFromClass(classId, studentId)
+                ? Result.ok("删除成功")
+                : Result.fail("删除失败");
     }
 
     // 导入Excel批量增加学生
     @Operation(summary = "导入Excel批量增加学生")
     @PostMapping("/import/class/{classId}")
     public Result importStudents(@PathVariable Long classId, @RequestParam("file") MultipartFile file) throws IOException {
-        return teachClassService.importStudents(classId, file);
+        return teachClassService.importStudents(classId, file)
+                ? Result.ok("导入成功")
+                : Result.fail("导入失败");
     }
 
     // endregion

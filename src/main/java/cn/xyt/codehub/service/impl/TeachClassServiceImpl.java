@@ -55,7 +55,7 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
 
     @Override
     @Transactional
-    public Result addSingleStudentToClass(Long classId, Student student) {
+    public boolean addSingleStudentToClass(Long classId, Student student) {
         // 先将该学生添加到学生表(检查学生表内有无该学生)
         Student studentInDb = studentMapper.selectOne(new QueryWrapper<Student>()
                 .eq("student_number", student.getStudentNumber()));
@@ -66,22 +66,22 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
         // 将该学生和班级信息添加到中间表
         int i = studentClassMapper.insert(new StudentClass(student.getStudentNumber(), classId));
         if (i == 0) {
-            return Result.fail("添加学生失败");
+            throw new RuntimeException("添加失败");
         }
 
         // 刷新班级人数
         this.flushStudentCount(classId);
-        return Result.ok("添加成功");
+        return true;
     }
 
     @Override
     @Transactional
-    public Result deleteSingleStudentFromClass(Long classId, Long studentId) {
+    public boolean deleteSingleStudentFromClass(Long classId, Long studentId) {
         // 根据student_id查询student_number
         Student student = studentMapper.selectOne(new QueryWrapper<Student>()
                 .eq("id", studentId));
         if (student == null) {
-            return Result.fail("学生不存在");
+            throw new RuntimeException("学生不存在");
         }
         String studentNumber = student.getStudentNumber();
 
@@ -90,20 +90,20 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
                 .eq("student_number", studentNumber)
                 .eq("class_id", classId));
         if (i == 0) {
-            return Result.fail("删除学生失败");
+            throw new RuntimeException("删除失败");
         }
 
         // 刷新班级人数
         this.flushStudentCount(classId);
-        return Result.ok("删除成功");
+        return true;
     }
 
     @Override
     @Transactional
-    public Result importStudents(Long classId, MultipartFile file) throws IOException {
+    public boolean importStudents(Long classId, MultipartFile file) throws IOException {
         TeachClass teachClass = this.getById(classId);
         if (teachClass == null) {
-            return Result.fail("教学班级不存在！");
+            throw new RuntimeException("教学班级不存在");
         }
 
         // 读取 Excel 文件
@@ -123,7 +123,7 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
 
         // 更新教学班级的人数
         flushStudentCount(classId);
-        return Result.ok();
+        return true;
     }
 
     // endregion

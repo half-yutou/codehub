@@ -26,7 +26,7 @@ public interface AdminService extends IService<Admin> {
 
     // region course
 
-    Result setCodeSubmit(Long courseId, boolean isCodeSubmit); // 设置是否需要提交代码
+    boolean setCodeSubmit(Long courseId, boolean isCodeSubmit); // 设置是否需要提交代码
 
     // endregion
 }

@@ -84,11 +84,11 @@ public class AssignmentController {
      * 根据课程ID查询作业列表
      */
     @Operation(summary = "根据班级ID查询作业列表")
-    @GetMapping("/list/class/{courseId}")
-    public Result listAssignmentsByClassId(@PathVariable Long courseId) {
+    @GetMapping("/list/class/{classId}")
+    public Result listAssignmentsByClassId(@PathVariable Long classId) {
         return Result.ok(assignmentService.list(
                 new QueryWrapper<Assignment>()
-                        .eq("class_id", courseId)));
+                        .eq("class_id", classId)));
     }
 
     /**
@@ -97,9 +97,8 @@ public class AssignmentController {
     @Operation(summary = "根据学生查询作业列表")
     @GetMapping("/list/student/{studentId}")
     public Result listAssignmentsByStudentId(@PathVariable Long studentId) {
-        return Result.ok(assignmentService.list(
-                new QueryWrapper<Assignment>()
-                        .eq("student_id", studentId)));
+        List<Assignment> assignments = assignmentService.listAssignmentsByStudentId(studentId);
+        return Result.ok(assignments);
     }
 
 
@@ -139,7 +138,5 @@ public class AssignmentController {
 
         return Result.ok("作业通知已发送！");
     }
-
-
 
 }

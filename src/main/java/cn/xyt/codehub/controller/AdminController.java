@@ -153,7 +153,9 @@ public class AdminController {
     @Operation(summary = "设置课程是否需要提交代码")
     @PutMapping("/course/set-code-submit/{courseId}")
     public Result setCodeSubmit(@PathVariable Long courseId, @RequestParam boolean isCodeSubmit) {
-        return adminService.setCodeSubmit(courseId, isCodeSubmit);
+        return adminService.setCodeSubmit(courseId, isCodeSubmit)
+                ? Result.ok("设置成功")
+                : Result.fail("设置失败");
     }
 
     /**

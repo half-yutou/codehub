@@ -77,14 +77,14 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
      * @param isCodeSubmit 是否需要提交代码
      */
     @Override
-    public Result setCodeSubmit(Long courseId, boolean isCodeSubmit) {
+    public boolean setCodeSubmit(Long courseId, boolean isCodeSubmit) {
         Course course = courseMapper.selectById(courseId);
         if (course == null) {
-            return Result.fail("课程不存在！");
+            throw new RuntimeException("课程不存在！");
         }
         course.setIsCodeSubmit(isCodeSubmit ? 1 : 0);
         courseMapper.updateById(course);
-        return Result.ok("课程提交代码设置成功！");
+        return true;
     }
 
     // endregion
