@@ -60,3 +60,16 @@ public Result addSingleStudentToClass(
         @PathVariable String studentNumber) : 将原来的Student实体类改为studentNumber(学号)
 ```
 > 解耦,原来方法是教师可以直接添加一个学生实体到数据库,现在更改为教师只能添加已注册的学生到班级中
+
+01.15fix:
+
+1. 根据教师id查询教学班级: 由于新增根据学生id查询教学班级,所以需要修改接口路径
+```java
+    // 查询教师所有教学班级
+    @Operation(summary = "查询该教师所有教学班级")
+    @GetMapping("/list/teacher/{teacherId}")  : 原为`/list/{teacherId}
+
+```
+
+2. 创建教学班级和更新教学班级 : 简化入参,故入参有更改请注意
+

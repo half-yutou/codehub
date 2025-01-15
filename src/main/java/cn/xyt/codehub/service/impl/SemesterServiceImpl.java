@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SemesterServiceImpl extends ServiceImpl<SemesterMapper, Semester> implements SemesterService {
     @Override
-    public void createSemester(SemesterDTO semesterDTO) {
-        save(BeanUtil.copyProperties(semesterDTO, Semester.class));
+    public boolean createSemester(SemesterDTO semesterDTO) {
+        return save(BeanUtil.copyProperties(semesterDTO, Semester.class));
     }
 }

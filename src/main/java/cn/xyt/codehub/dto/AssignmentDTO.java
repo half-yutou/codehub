@@ -1,18 +1,11 @@
-package cn.xyt.codehub.entity;
+package cn.xyt.codehub.dto;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
-@TableName("assignment") // 对应数据库表 assignment
-public class Assignment {
-
-    @TableId
-    private Long id;           // 作业ID
-
+public class AssignmentDTO {
     private String title;      // 作业标题
 
     private String description;       // 作业内容

@@ -3,14 +3,17 @@ package cn.xyt.codehub.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.StudentExcelDTO;
+import cn.xyt.codehub.dto.TeachClassDTO;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.StudentClass;
+import cn.xyt.codehub.mapper.SemesterMapper;
 import cn.xyt.codehub.mapper.StudentClassMapper;
 import cn.xyt.codehub.mapper.StudentMapper;
 import cn.xyt.codehub.service.StudentClassService;
 import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.TeachClassService;
 import cn.xyt.codehub.util.ExcelUtil;
+import cn.xyt.codehub.vo.TeachClassVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
@@ -21,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,6 +32,9 @@ import java.util.stream.Collectors;
 public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachClass> implements TeachClassService {
     @Resource
     private TeachClassMapper teachClassMapper;
+
+    @Resource
+    private SemesterMapper semesterMapper;
 
     @Resource
     private StudentMapper studentMapper;
@@ -124,6 +131,46 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
         // 更新教学班级的人数
         flushStudentCount(classId);
         return true;
+    }
+
+    @Override
+    public boolean addTeachClass(TeachClassDTO teachClassDTO) {
+        return save(BeanUtil.copyProperties(teachClassDTO, TeachClass.class));
+    }
+
+    @Override
+    public TeachClassVO getTeachClassById(Long id) {
+        TeachClass teachClass = getById(id);
+        if (teachClass == null) {
+            throw new RuntimeException("教学班级不存在");
+        }
+        TeachClassVO teachClassVO = BeanUtil.copyProperties(teachClass, TeachClassVO.class);
+        teachClassVO.setSemester(semesterMapper.selectById(teachClass.getSemesterId()));
+        return teachClassVO;
+    }
+
+    @Override
+    public List<TeachClassVO> getTeachClassByTeacherId(Long teacherId) {
+        List<TeachClass> teachClasses = list(new QueryWrapper<TeachClass>().eq("teacher_id", teacherId));
+        ArrayList<TeachClassVO> teachClassesVOS = new ArrayList<>();
+        teachClasses.forEach(teachClass -> {
+            TeachClassVO teachClassVO = BeanUtil.copyProperties(teachClass, TeachClassVO.class);
+            teachClassVO.setSemester(semesterMapper.selectById(teachClass.getSemesterId()));
+            teachClassesVOS.add(teachClassVO);
+        });
+        return teachClassesVOS;
+    }
+
+    @Override
+    public List<TeachClassVO> getTeachClassByStudentId(Long studentId) {
+        List<StudentClass> studentClasses = studentClassMapper.selectList(new QueryWrapper<StudentClass>().eq("student_id", studentId));
+        ArrayList<TeachClassVO> teachClassVOS = new ArrayList<>();
+        studentClasses.forEach(studentClass -> {
+            TeachClassVO teachClassVO = BeanUtil.copyProperties(getById(studentClass.getClassId()), TeachClassVO.class);
+            teachClassVO.setSemester(semesterMapper.selectById(getById(studentClass.getClassId()).getSemesterId()));
+            teachClassVOS.add(teachClassVO);
+        });
+        return teachClassVOS;
     }
 
     // endregion

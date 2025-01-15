@@ -1,5 +1,6 @@
 package cn.xyt.codehub.controller;
 
+import cn.xyt.codehub.dto.AssignmentDTO;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.entity.Assignment;
 import cn.xyt.codehub.entity.Student;
@@ -35,8 +36,8 @@ public class AssignmentController {
      */
     @Operation(summary = "创建作业")
     @PostMapping("/add")
-    public Result createAssignment(@RequestBody Assignment assignment) {
-        boolean success = assignmentService.save(assignment);
+    public Result createAssignment(@RequestBody AssignmentDTO assignmentDTO) {
+        boolean success = assignmentService.addAssignment(assignmentDTO);
         return success ? Result.ok("作业创建成功") : Result.fail("作业创建失败");
     }
 
@@ -92,9 +93,20 @@ public class AssignmentController {
     }
 
     /**
-     * 根据学生查询作业列表
+     * 根据教师ID查询作业列表
      */
-    @Operation(summary = "根据学生查询作业列表")
+    @Operation(summary = "根据教师ID查询作业列表")
+    @GetMapping("/list/teacher/{teacherId}")
+    public Result listAssignmentsByTeacherId(@PathVariable Long teacherId) {
+        return Result.ok(assignmentService.list(
+                new QueryWrapper<Assignment>()
+                        .eq("teacher_id", teacherId)));
+    }
+
+    /**
+     * 根据学生ID查询作业列表
+     */
+    @Operation(summary = "根据学生ID查询作业列表")
     @GetMapping("/list/student/{studentId}")
     public Result listAssignmentsByStudentId(@PathVariable Long studentId) {
         List<Assignment> assignments = assignmentService.listAssignmentsByStudentId(studentId);

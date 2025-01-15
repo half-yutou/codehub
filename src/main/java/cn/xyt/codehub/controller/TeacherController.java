@@ -1,6 +1,7 @@
 package cn.xyt.codehub.controller;
 
 import cn.xyt.codehub.dto.Result;
+import cn.xyt.codehub.dto.TeacherDTO;
 import cn.xyt.codehub.entity.Assignment;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.TeachClass;
@@ -13,6 +14,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -34,8 +36,8 @@ public class TeacherController {
     // 新增教师
     @Operation(summary = "新增教师")
     @PostMapping("/add")
-    public Result addTeacher(@RequestBody Teacher teacher) {
-        boolean isSaved = teacherService.save(teacher);
+    public Result addTeacher(@RequestBody @Validated TeacherDTO teacherDTO) {
+        boolean isSaved = teacherService.addTeacher(teacherDTO);
         return isSaved ? Result.ok("新增教师成功") : Result.fail("新增教师失败");
     }
 

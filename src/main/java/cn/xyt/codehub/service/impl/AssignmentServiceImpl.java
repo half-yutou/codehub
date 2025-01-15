@@ -1,5 +1,7 @@
 package cn.xyt.codehub.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.xyt.codehub.dto.AssignmentDTO;
 import cn.xyt.codehub.entity.Assignment;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.StudentClass;
@@ -26,6 +28,11 @@ public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignm
     private StudentMapper studentMapper;
 
     @Override
+    public boolean addAssignment(AssignmentDTO assignmentDTO) {
+        return save(BeanUtil.copyProperties(assignmentDTO, Assignment.class));
+    }
+
+    @Override
     public List<Assignment> listAssignmentsByStudentId(Long studentId) {
         // 先根据studentId查询其studentNumber
         Student student = studentMapper.selectOne(new QueryWrapper<Student>().eq("id", studentId));
@@ -47,4 +54,6 @@ public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignm
         });
         return as;
     }
+
+
 }

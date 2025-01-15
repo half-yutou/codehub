@@ -3,6 +3,7 @@ package cn.xyt.codehub.service.impl;
 import cn.xyt.codehub.entity.Submission;
 import cn.xyt.codehub.mapper.SubmissionMapper;
 import cn.xyt.codehub.service.SubmissionService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -157,6 +158,13 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     @Override
     public List<Submission> getSubmissionsByClassIdAndStudentId(Long classId, Long studentId) {
         return baseMapper.getSubmissionsByClassIdAndStudentId(classId, studentId);
+    }
+
+    @Override
+    public List<Submission> getSubmissionsStudentIdAndAssignmentId(Long studentId, Long assignmentId) {
+        return list(new QueryWrapper<Submission>()
+                .eq("student_id", studentId)
+                .eq("assignment_id", assignmentId));
     }
 
     // 辅助方法：处理文件夹返回

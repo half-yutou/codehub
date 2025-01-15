@@ -33,8 +33,9 @@ public class SemesterController {
     @Operation(summary = "创建学期")
     @PostMapping("/create")
     public Result createSemester(@RequestBody SemesterDTO semesterDTO) {
-        semesterService.createSemester(semesterDTO);
-        return Result.ok("学期创建成功");
+        return semesterService.createSemester(semesterDTO)
+                ? Result.ok("学期创建成功")
+                : Result.fail("学期创建失败");
     }
 
     @Operation(summary = "删除学期")

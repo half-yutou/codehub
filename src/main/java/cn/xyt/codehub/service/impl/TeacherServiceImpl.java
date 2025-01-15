@@ -6,6 +6,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.LoginDTO;
 import cn.xyt.codehub.dto.RegisterDTO;
 import cn.xyt.codehub.dto.Result;
+import cn.xyt.codehub.dto.TeacherDTO;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.Teacher;
 import cn.xyt.codehub.mapper.TeacherMapper;
@@ -43,5 +44,12 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         Teacher teacher = BeanUtil.copyProperties(registerDTO, Teacher.class);
         teacher.setPassword(MD5Util.encrypt(registerDTO.getPassword()));
         return save(teacher) ? Result.ok() : Result.fail("注册失败");
+    }
+
+    @Override
+    public boolean addTeacher(TeacherDTO teacherDTO) {
+        Teacher teacher = BeanUtil.copyProperties(teacherDTO, Teacher.class);
+        teacher.setPassword(MD5Util.encrypt(teacherDTO.getPassword()));
+        return save(teacher);
     }
 }
