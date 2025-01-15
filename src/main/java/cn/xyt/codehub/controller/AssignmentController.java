@@ -1,24 +1,30 @@
 package cn.xyt.codehub.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.AssignmentDTO;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.entity.Assignment;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.service.AssignmentService;
 import cn.xyt.codehub.service.TeachClassService;
+import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.MailUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import cn.xyt.codehub.vo.AssignmentVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/assign")
 @Tag(name = "作业管理方法")
 public class AssignmentController {
+
+    @Resource
+    private TeacherService teacherService;
 
     @Resource
     private TeachClassService teachClassService;
@@ -68,7 +74,13 @@ public class AssignmentController {
     @GetMapping("/list")
     public Result listAssignments() {
         List<Assignment> assignments = assignmentService.list();
-        return Result.ok(assignments);
+        List<AssignmentVO> assignmentVOS = new ArrayList<>();
+        assignments.forEach(assignment -> {
+            AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
+            assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+            assignmentVOS.add(assignmentVO);
+        });
+        return Result.ok(assignmentVOS);
     }
 
     /**
@@ -78,7 +90,9 @@ public class AssignmentController {
     @GetMapping("/get/{id}")
     public Result getAssignment(@PathVariable Long id) {
         Assignment assignment = assignmentService.getById(id);
-        return assignment != null ? Result.ok(assignment) : Result.fail("作业信息不存在");
+        AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
+        assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+        return Result.ok(assignmentVO);
     }
 
     /**
@@ -87,9 +101,8 @@ public class AssignmentController {
     @Operation(summary = "根据班级ID查询作业列表")
     @GetMapping("/list/class/{classId}")
     public Result listAssignmentsByClassId(@PathVariable Long classId) {
-        return Result.ok(assignmentService.list(
-                new QueryWrapper<Assignment>()
-                        .eq("class_id", classId)));
+        List<AssignmentVO> assignmentVOList = assignmentService.listByClassId(classId);
+        return Result.ok(assignmentVOList);
     }
 
     /**
@@ -98,9 +111,8 @@ public class AssignmentController {
     @Operation(summary = "根据教师ID查询作业列表")
     @GetMapping("/list/teacher/{teacherId}")
     public Result listAssignmentsByTeacherId(@PathVariable Long teacherId) {
-        return Result.ok(assignmentService.list(
-                new QueryWrapper<Assignment>()
-                        .eq("teacher_id", teacherId)));
+        List<AssignmentVO> assignmentVOList = assignmentService.listByTeacherId(teacherId);
+        return Result.ok(assignmentVOList);
     }
 
     /**
@@ -109,8 +121,8 @@ public class AssignmentController {
     @Operation(summary = "根据学生ID查询作业列表")
     @GetMapping("/list/student/{studentId}")
     public Result listAssignmentsByStudentId(@PathVariable Long studentId) {
-        List<Assignment> assignments = assignmentService.listAssignmentsByStudentId(studentId);
-        return Result.ok(assignments);
+        List<AssignmentVO> assignmentVOList = assignmentService.listByStudentId(studentId);
+        return Result.ok(assignmentVOList);
     }
 
 

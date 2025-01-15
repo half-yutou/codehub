@@ -9,6 +9,8 @@ import cn.xyt.codehub.mapper.AssignmentMapper;
 import cn.xyt.codehub.mapper.StudentClassMapper;
 import cn.xyt.codehub.mapper.StudentMapper;
 import cn.xyt.codehub.service.AssignmentService;
+import cn.xyt.codehub.service.TeacherService;
+import cn.xyt.codehub.vo.AssignmentVO;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,6 +22,8 @@ import java.util.List;
 
 @Service
 public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignment> implements AssignmentService {
+    @Resource
+    private TeacherService teacherService;
 
     @Resource
     private StudentClassMapper studentClassMapper;
@@ -33,7 +37,7 @@ public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignm
     }
 
     @Override
-    public List<Assignment> listAssignmentsByStudentId(Long studentId) {
+    public List<AssignmentVO> listByStudentId(Long studentId) {
         // 先根据studentId查询其studentNumber
         Student student = studentMapper.selectOne(new QueryWrapper<Student>().eq("id", studentId));
         if (student == null) {
@@ -47,12 +51,43 @@ public class AssignmentServiceImpl extends ServiceImpl<AssignmentMapper, Assignm
             return List.of();
         }
         // 再根据班级返回其所有作业
-        List<Assignment> as = new ArrayList<>();
+        List<AssignmentVO> as = new ArrayList<>();
         sc.forEach(s -> {
             Long classId = s.getClassId();
-            as.addAll(list(new QueryWrapper<Assignment>().eq("class_id", classId)));
+            List<Assignment> assignments = list(new QueryWrapper<Assignment>().eq("class_id", classId));
+            ArrayList<AssignmentVO> assignmentVOS = new ArrayList<>();
+            assignments.forEach(assignment -> {
+                AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
+                assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+                assignmentVOS.add(assignmentVO);
+            });
+            as.addAll(assignmentVOS);
         });
         return as;
+    }
+
+    @Override
+    public List<AssignmentVO> listByClassId(Long classId) {
+        List<Assignment> assignments = list(new QueryWrapper<Assignment>().eq("class_id", classId));
+        ArrayList<AssignmentVO> assignmentVOS = new ArrayList<>();
+        assignments.forEach(assignment -> {
+            AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
+            assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+            assignmentVOS.add(assignmentVO);
+        });
+        return assignmentVOS;
+    }
+
+    @Override
+    public List<AssignmentVO> listByTeacherId(Long teacherId) {
+        List<Assignment> assignments = list(new QueryWrapper<Assignment>().eq("teacher_id", teacherId));
+        ArrayList<AssignmentVO> assignmentVOS = new ArrayList<>();
+        assignments.forEach(assignment -> {
+            AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
+            assignmentVO.setTeacher(teacherService.getById(teacherId));
+            assignmentVOS.add(assignmentVO);
+        });
+        return assignmentVOS;
     }
 
 
