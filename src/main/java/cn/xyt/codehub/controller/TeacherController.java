@@ -58,10 +58,20 @@ public class TeacherController {
     }
 
     // 查询单个教师信息
-    @Operation(summary = "查询单个教师信息")
+    @Operation(summary = "根据ID查询单个教师信息")
     @GetMapping("/get/{id}")
     public Result getTeacher(@PathVariable Long id) {
         Teacher teacher = teacherService.getById(id);
+        return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
+    }
+
+    // 根据教师名称查询教师信息
+    @Operation(summary = "根据教师名称查询教师信息")
+    @GetMapping("/get/name")
+    public Result getTeacherByName(@RequestParam String name) {
+        QueryWrapper<Teacher> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", name);
+        Teacher teacher = teacherService.getOne(queryWrapper);
         return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
     }
 

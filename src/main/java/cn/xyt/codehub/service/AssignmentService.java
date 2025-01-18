@@ -15,4 +15,6 @@ public interface AssignmentService extends IService<Assignment> {
     List<AssignmentVO> listByClassId(Long classId);
 
     List<AssignmentVO> listByTeacherId(Long teacherId);
+
+    void fillSubmitCountFromSubmission(AssignmentVO assignmentVO);
 }

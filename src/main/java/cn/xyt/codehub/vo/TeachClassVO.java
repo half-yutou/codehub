@@ -1,9 +1,11 @@
 package cn.xyt.codehub.vo;
 
 import cn.xyt.codehub.entity.Semester;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class TeachClassVO {
     private Long id;               // 主键ID
     private String name;           // 教学班级名称

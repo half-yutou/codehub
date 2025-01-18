@@ -1,11 +1,13 @@
 package cn.xyt.codehub.vo;
 
 import cn.xyt.codehub.entity.Teacher;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 public class AssignmentVO {
     private Long id;           // 作业ID
 
@@ -18,4 +20,8 @@ public class AssignmentVO {
     private Long classId;     // 关联教学班级ID
 
     private Teacher teacher; // 创建者
+
+    private Long submitCount; // 提交次数
+
+    private Integer totalCount ; // 总人数
 }

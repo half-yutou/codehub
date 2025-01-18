@@ -2,7 +2,9 @@ package cn.xyt.codehub.controller;
 
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.entity.Student;
+import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.TeachClassService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -20,6 +22,9 @@ public class StudentController {
     @Resource
     private TeachClassService teachClassService;
 
+    @Resource
+    private StudentService studentService;
+
     // region student-manage-methods
 
     // 获取指定班级所有学生
@@ -28,6 +33,18 @@ public class StudentController {
     public Result getStudentsByClassId(@PathVariable Long classId) {
         List<Student> students = teachClassService.getStudentsByClassId(classId);
         return Result.ok(students);
+    }
+
+    // 根据姓名获取指定班级学生
+    @Operation(summary = "根据姓名获取某班学生")
+    @PostMapping("/get/name/{classId}")
+    public Result getStudentsByName(@PathVariable Long classId, @RequestParam String name) {
+        List<Student> studentsByClassId = teachClassService.getStudentsByClassId(classId);
+        Student student = studentsByClassId.stream()
+                .filter(s -> s.getUsername().equals(name))
+                .findFirst()
+                .orElse(null);
+        return student != null ? Result.ok(student) :Result.fail("该学生不存在");
     }
 
     // 新增一个学生到指定班级

@@ -78,6 +78,7 @@ public class AssignmentController {
         assignments.forEach(assignment -> {
             AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
             assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+            assignmentService.fillSubmitCountFromSubmission(assignmentVO);
             assignmentVOS.add(assignmentVO);
         });
         return Result.ok(assignmentVOS);
@@ -92,6 +93,7 @@ public class AssignmentController {
         Assignment assignment = assignmentService.getById(id);
         AssignmentVO assignmentVO = BeanUtil.copyProperties(assignment, AssignmentVO.class);
         assignmentVO.setTeacher(teacherService.getById(assignment.getTeacherId()));
+        assignmentService.fillSubmitCountFromSubmission(assignmentVO);
         return Result.ok(assignmentVO);
     }
 
