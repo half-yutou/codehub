@@ -218,7 +218,8 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                 this.update().eq("student_id", studentId)
                         .eq("assignment_id", assignmentId)
                         .eq("class_id", classId)
-                        .set("status", "查重通过");
+                        .set("status", "查重通过")
+                        .update();
                 // 将过往不通过的记录删除
                 codeReviewReportMapper.delete(new QueryWrapper<CodeReviewReport>()
                         .eq("student_id", studentId));
