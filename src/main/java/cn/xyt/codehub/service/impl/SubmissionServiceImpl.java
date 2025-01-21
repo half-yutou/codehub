@@ -1,10 +1,19 @@
 package cn.xyt.codehub.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.xyt.codehub.dto.CodeReviewDTO;
+import cn.xyt.codehub.entity.CodeReviewReport;
 import cn.xyt.codehub.entity.Submission;
+import cn.xyt.codehub.mapper.CodeReviewReportMapper;
 import cn.xyt.codehub.mapper.SubmissionMapper;
 import cn.xyt.codehub.service.SubmissionService;
+import cn.xyt.codehub.util.CodeReviewUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import jakarta.annotation.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -26,49 +38,73 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     @Value("${submit.dir}")
     private String submitPath;
 
+    @Value("${submit.review.command}")
+    private String command; // 可执行文件的路径
+
+    Logger logger = LoggerFactory.getLogger(SubmissionServiceImpl.class);
+
+    @Resource
+    private CodeReviewReportMapper codeReviewReportMapper;
+
+    @Resource
+    private SubmissionMapper submissionMapper;
+
+    private final Executor executor = Executors.newFixedThreadPool(10);
+
     // region upload
 
     @Override
     public void handleFileUpload(MultipartFile[] files, Long assignmentId, Long studentId, Long classId) {
         // 创建存储目录
-        File directory = new File(submitPath);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        File studentDir = getFile(assignmentId, studentId, classId);
+        // 清空之前的提交记录
+        this.remove(new QueryWrapper<Submission>()
+                .eq("student_id", studentId)
+                .eq("assignment_id", assignmentId)
+                .eq("class_id", classId));
 
-        for (MultipartFile file : files) {
+        for (MultipartFile multipartFile : files) {
             try {
                 // 判断文件类型是否为压缩文件
-                if (isZipFile(file)) {
-                    // 解压缩文件
-                    File zipDestination = new File(submitPath, generateUniqueDir(assignmentId, studentId));
-                    unzipFile(file, zipDestination, "GBK");
-
-                    // 遍历解压后的文件并保存
-                    File[] extractedFiles = zipDestination.listFiles();
-                    if (extractedFiles != null) {
-                        for (File extractedFile : extractedFiles) {
-                            saveFileInfo(extractedFile, assignmentId, studentId, classId);
-                        }
-                    }
+                if (isZipFile(multipartFile)) {
+                    // 解压缩文件并保存
+                    unzipFile(multipartFile, studentDir, "GBK", studentId, assignmentId, classId);
                 } else {
                     // 普通文件保存
-                    File destination = new File(directory, generateUniqueFileName(file.getOriginalFilename(), studentId));
-                    file.transferTo(destination);
-                    saveFileInfo(destination, assignmentId, studentId, classId);
+                    File destination = new File(studentDir, multipartFile.getOriginalFilename());
+                    multipartFile.transferTo(destination);
+                    saveSubmitInfo(destination.getName(), studentId, assignmentId, classId);
                 }
             } catch (IOException e) {
-                throw new RuntimeException("文件上传失败: " + file.getOriginalFilename());
+                throw new RuntimeException("文件上传失败: " + multipartFile.getOriginalFilename());
             }
         }
     }
 
-    private boolean isZipFile(MultipartFile file) {
-        String name = file.getOriginalFilename();
-        return name.endsWith(".zip") || name.endsWith(".ZIP");
+    private File getFile(Long assignmentId, Long studentId, Long classId) {
+        File classDir = new File(submitPath, classId.toString());
+        if (!classDir.exists()) {
+            classDir.mkdirs();
+        }
+
+        File assignmentDir = new File(classDir, assignmentId.toString());
+        if (!assignmentDir.exists()) {
+            assignmentDir.mkdirs();
+        }
+
+        File studentDir = new File(assignmentDir, studentId.toString());
+        if (studentDir.exists()) {
+            // 清空学生目录下的所有文件
+            for (File file : studentDir.listFiles()) {
+                file.delete();
+            }
+        } else {
+            studentDir.mkdirs();
+        }
+        return studentDir;
     }
 
-    public void unzipFile(MultipartFile zipFile, File destination, String charsetName) throws IOException {
+    public void unzipFile(MultipartFile zipFile, File destination, String charsetName, Long studentId, Long assignmentId, Long classId) throws IOException {
         // 确保目标文件夹存在
         if (!destination.exists() && !destination.mkdirs()) {
             throw new IOException("Failed to create destination directory: " + destination.getAbsolutePath());
@@ -86,29 +122,28 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                     throw new IOException("Entry is outside of the target dir: " + entry.getName());
                 }
 
-                if (entry.isDirectory()) {
-                    // 创建目录
-                    if (!newFile.exists() && !newFile.mkdirs()) {
-                        throw new IOException("Failed to create directory: " + newFile.getAbsolutePath());
-                    }
-                } else {
-                    // 解压文件
-                    File parentDir = newFile.getParentFile();
-                    if (!parentDir.exists() && !parentDir.mkdirs()) {
-                        throw new IOException("Failed to create directory: " + parentDir.getAbsolutePath());
-                    }
+                // 解压文件
+                File parentDir = newFile.getParentFile();
+                if (!parentDir.exists() && !parentDir.mkdirs()) {
+                    throw new IOException("Failed to create directory: " + parentDir.getAbsolutePath());
+                }
 
-                    try (InputStream is = zip.getInputStream(entry);
-                         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(newFile))) {
-                        byte[] buffer = new byte[4096];
-                        int len;
-                        while ((len = is.read(buffer)) > 0) {
-                            bos.write(buffer, 0, len);
-                        }
+                try (InputStream is = zip.getInputStream(entry);
+                     BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(newFile))) {
+                    byte[] buffer = new byte[4096];
+                    int len;
+                    while ((len = is.read(buffer)) > 0) {
+                        bos.write(buffer, 0, len);
                     }
                 }
+                saveSubmitInfo(newFile.getName(), studentId, assignmentId, classId);
             }
         }
+    }
+
+    private boolean isZipFile(MultipartFile file) {
+        String name = file.getOriginalFilename();
+        return name.endsWith(".zip") || name.endsWith(".ZIP");
     }
 
     // 辅助方法：将 MultipartFile 转为 File
@@ -118,24 +153,91 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         return convFile;
     }
 
-    private String generateUniqueFileName(String originalName, Long studentId) {
-        return studentId + "_" + System.currentTimeMillis() + "_" + originalName;
-    }
 
-    private String generateUniqueDir(Long assignmentId, Long studentId) {
-        return assignmentId + "_" + studentId + "_" + System.currentTimeMillis();
-    }
-
-    private void saveFileInfo(File file, Long assignmentId, Long studentId, Long classId) {
+    private void saveSubmitInfo(String fileName, Long studentId, Long assignmentId, Long classId) {
         Submission submission = new Submission();
         submission.setAssignmentId(assignmentId);
         submission.setStudentId(studentId);
         submission.setClassId(classId);
-        submission.setFilename(file.getName());
+        submission.setFilename(fileName);
         submission.setSubmittedAt(LocalDateTime.now());
-        submission.setStatus("SUBMITTED");
-
+        submission.setStatus("查重中");
         this.save(submission);
+        this.codeReview(fileName, assignmentId, studentId, classId);
+    }
+
+    private void codeReview(String fileName, Long assignmentId, Long studentId, Long classId) {
+        CompletableFuture.supplyAsync(() -> {
+            // 拿到文件父目录:submitDir + classID + assignmentID
+            File parentDir = new File(submitPath, classId + File.separator + assignmentId);
+            // 遍历该目录下其他学生的提交目录,并遍历该目录下所有文件
+            if (!parentDir.isDirectory()) {
+                throw new RuntimeException("Invalid parent directory: " + parentDir);
+            }
+            for (File studentDir : parentDir.listFiles()) {
+                if (studentDir.getName().equals(studentId.toString())) continue;
+                for (File otherStudentFile : studentDir.listFiles()) {
+                    if (otherStudentFile.getName().endsWith(".cpp")) {
+                            try {
+                                CodeReviewDTO codeReviewDTO = CodeReviewUtil.codeReview(
+                                        command,
+                                        new File(parentDir, studentId + File.separator + fileName).getAbsolutePath(),
+                                        otherStudentFile.getAbsolutePath());
+                                if (codeReviewDTO.isOverThreshold()) {
+                                    // 将查重不通过的两份提交id根据作业id和学生id和文件名查出来
+                                    Submission the = getOne(new QueryWrapper<Submission>()
+                                            .eq("assignment_id", assignmentId)
+                                            .eq("student_id", studentId)
+                                            .eq("class_id", classId)
+                                            .eq("filename", fileName));
+                                    Submission another = getOne(new QueryWrapper<Submission>()
+                                            .eq("assignment_id", assignmentId)
+                                            .eq("student_id", Long.parseLong(studentDir.getName()))
+                                            .eq("class_id", classId)
+                                            .eq("filename", otherStudentFile.getName()));
+                                    if (the == null || another == null) throw new RuntimeException("作业提交信息缺失,查重失败");
+                                    codeReviewDTO.setStudentId(studentId);
+                                    codeReviewDTO.setSubmissionId(the.getId());
+                                    codeReviewDTO.setAnotherSubmissionId(another.getId());
+                                    return codeReviewDTO;
+                                }
+                            } catch (IOException | InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
+                    }
+                }
+            }
+            CodeReviewDTO pass = CodeReviewDTO.pass();
+            pass.setStudentId(studentId);
+            return pass;
+        }, executor).thenAccept(dto -> {
+            logger.debug("进入 thenAccept");
+            if (!dto.isOverThreshold()) {
+                logger.debug("进入 dto.isOverThreshold() == false");
+                // 修改该提交状态为查重通过
+                this.update().eq("student_id", studentId)
+                        .eq("assignment_id", assignmentId)
+                        .eq("class_id", classId)
+                        .set("status", "查重通过");
+                // 将过往不通过的记录删除
+                codeReviewReportMapper.delete(new QueryWrapper<CodeReviewReport>()
+                        .eq("student_id", studentId));
+                return ;
+            }
+            // 修改为查重不通过
+            this.update().eq("student_id", studentId)
+                    .eq("assignment_id", assignmentId)
+                    .eq("class_id", classId)
+                    .set("status", "查重不通过")
+                    .update();
+
+            // 并且将报告记录于code_review_report表中
+            CodeReviewReport codeReviewReport = BeanUtil.copyProperties(dto, CodeReviewReport.class);
+            codeReviewReportMapper.insert(codeReviewReport);
+        }).exceptionally(e -> {
+            logger.error("codeReview 异常: " + e.getMessage());
+            return null;
+        });
     }
 
 
@@ -161,25 +263,10 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     }
 
     @Override
-    public List<Submission> getSubmissionsStudentIdAndAssignmentId(Long studentId, Long assignmentId) {
+    public List<Submission> getSubmissionsByStudentIdAndAssignmentId(Long studentId, Long assignmentId) {
         return list(new QueryWrapper<Submission>()
                 .eq("student_id", studentId)
                 .eq("assignment_id", assignmentId));
-    }
-
-    // 辅助方法：处理文件夹返回
-    @Override
-    public List<String> resolveSubmissionFiles(String filePath) {
-        File file = new File(filePath);
-        List<String> fileNames = new ArrayList<>();
-        if (file.isDirectory()) {
-            for (File subFile : Objects.requireNonNull(file.listFiles())) {
-                fileNames.add(subFile.getAbsolutePath());
-            }
-        } else {
-            fileNames.add(file.getAbsolutePath());
-        }
-        return fileNames;
     }
 
 

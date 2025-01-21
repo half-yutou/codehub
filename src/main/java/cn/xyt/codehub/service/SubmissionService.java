@@ -16,9 +16,7 @@ public interface SubmissionService extends IService<Submission> {
 
     List<Submission> getSubmissionsByClassIdAndStudentId(Long classId, Long studentId);
 
-    List<Submission> getSubmissionsStudentIdAndAssignmentId(Long studentId, Long assignmentId);
+    List<Submission> getSubmissionsByStudentIdAndAssignmentId(Long studentId, Long assignmentId);
 
-    // 辅助方法：处理文件夹返回
-    List<String> resolveSubmissionFiles(String filePath);
 
 }

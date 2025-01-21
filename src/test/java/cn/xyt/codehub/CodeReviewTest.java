@@ -3,6 +3,8 @@ package cn.xyt.codehub;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CodeReviewTest {
     public static void main(String[] args) {
@@ -44,12 +46,29 @@ public class CodeReviewTest {
             // 输出结果
             if (exitCode == 0) {
                 System.out.println("Output:\n" + output);
+                System.out.println("Similarity Percentage: " + extractSimilarityPercentage(output));
             } else {
                 System.err.println("Error Output:\n" + errorOutput);
             }
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static final Pattern SIMILARITY_PATTERN = Pattern.compile("(\\d+)\\s*%");
+
+    public static int extractSimilarityPercentage(StringBuilder output) {
+        Matcher matcher = SIMILARITY_PATTERN.matcher(output.toString());
+
+        // 查找匹配项
+        if (matcher.find()) {
+            // 提取匹配的数字并转换为整数
+            String percentageStr = matcher.group(1);
+            return Integer.parseInt(percentageStr);
+        } else {
+            // 如果没有找到匹配项，返回一个默认值或抛出异常
+            throw new IllegalArgumentException("Similarity percentage not found in output");
         }
     }
 }

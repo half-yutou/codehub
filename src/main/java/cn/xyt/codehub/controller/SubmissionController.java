@@ -19,9 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -40,16 +37,18 @@ public class SubmissionController {
     // Create -> upload
     // 不支持更改,建议重新提交
 
+    // 不支持删除
+
     /**
      * 删除指定作业
      */
-    @Operation(summary = "删除指定提交")
-    @DeleteMapping("/delete/{id}")
-    public Result deleteAssignment(@PathVariable Long id) {
-        return submissionService.removeById(id)
-                ? Result.ok("作业提交删除成功！")
-                : Result.fail("作业提交删除失败！");
-    }
+//    @Operation(summary = "删除指定提交")
+//    @DeleteMapping("/delete/{id}")
+//    public Result deleteAssignment(@PathVariable Long id) {
+//        return submissionService.removeById(id)
+//                ? Result.ok("作业提交删除成功！")
+//                : Result.fail("作业提交删除失败！");
+//    }
 
     /**
      * 查询单个提交信息
@@ -80,7 +79,7 @@ public class SubmissionController {
     @GetMapping("/get/student/{studentId}/assignment/{assignmentId}")
     public Result getSubmissionByStudentIdAndAssignmentId(@PathVariable Long studentId,
                                                           @PathVariable Long assignmentId) {
-        List<Submission> submissions = submissionService.getSubmissionsStudentIdAndAssignmentId(studentId, assignmentId);
+        List<Submission> submissions = submissionService.getSubmissionsByStudentIdAndAssignmentId(studentId, assignmentId);
         return Result.ok(submissions);
     }
 
@@ -111,7 +110,7 @@ public class SubmissionController {
     // endregion
 
 
-    // region assignment-submit-methods
+    // region assignment-submit-download-methods
 
 
     /**

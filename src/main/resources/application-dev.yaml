@@ -17,3 +17,5 @@ task:
 
 submit:
   dir: E:\CSUcourse\Three\exp-second\codehub-submit
+  review:
+    command: D:\APP_File\sim_exe\sim_c++.exe
