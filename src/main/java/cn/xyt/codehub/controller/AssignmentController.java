@@ -10,6 +10,7 @@ import cn.xyt.codehub.service.TeachClassService;
 import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.MailUtil;
 import cn.xyt.codehub.vo.AssignmentVO;
+import cn.xyt.codehub.vo.StudentVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -137,14 +138,14 @@ public class AssignmentController {
     @PostMapping("/notify")
     public Result notifyStudents(@RequestParam Long classId) {
         // 查询教学班级的所有学生
-        List<Student> students = teachClassService.getStudentsByClassId(classId);
+        List<StudentVO> students = teachClassService.getStudentsByClassId(classId);
 
         if (students.isEmpty()) {
             return Result.fail("该班级没有学生！");
         }
 
         // 遍历学生，逐一发送通知
-        for (Student student : students) {
+        for (StudentVO student : students) {
             String email = student.getEmail();
             if (email == null || email.isEmpty()) {
                 continue; // 如果学生未设置邮箱，则跳过

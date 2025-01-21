@@ -1,7 +1,6 @@
 package cn.xyt.codehub.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.StudentExcelDTO;
 import cn.xyt.codehub.dto.TeachClassDTO;
 import cn.xyt.codehub.entity.Student;
@@ -13,6 +12,7 @@ import cn.xyt.codehub.service.StudentClassService;
 import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.TeachClassService;
 import cn.xyt.codehub.util.ExcelUtil;
+import cn.xyt.codehub.vo.StudentVO;
 import cn.xyt.codehub.vo.TeachClassVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -56,8 +56,11 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
     }
 
     @Override
-    public List<Student> getStudentsByClassId(Long classId) {
-        return teachClassMapper.getStudentsByClassId(classId);
+    public List<StudentVO> getStudentsByClassId(Long classId) {
+        List<Student> students = teachClassMapper.getStudentsByClassId(classId);
+        return students.stream()
+                .map(student -> BeanUtil.copyProperties(student, StudentVO.class))
+                .collect(Collectors.toList());
     }
 
     @Override

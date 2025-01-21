@@ -1,9 +1,11 @@
 package cn.xyt.codehub.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.TeachClassService;
+import cn.xyt.codehub.vo.StudentVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,26 +27,52 @@ public class StudentController {
     @Resource
     private StudentService studentService;
 
+    // region student-crud-method
+    @Operation(summary = "根据学生id获取学生信息")
+    @GetMapping("/get/id/{id}")
+    public Result getStudentById(@PathVariable Long id) {
+        Student student = studentService.getById(id);
+        if (student == null) {
+            return Result.fail("该学生不存在");
+        }
+        StudentVO studentVO = BeanUtil.copyProperties(student, StudentVO.class);
+        return Result.ok(studentVO);
+    }
+
+    @Operation(summary = "根据学生学号获取信息")
+    @GetMapping("/get/number/{studentNumber}")
+    public Result getStudentByNumber(@PathVariable String studentNumber) {
+        Student student = studentService.getOne(new QueryWrapper<Student>().eq("student_number", studentNumber));
+        if (student == null) {
+            return Result.fail("该学生不存在");
+        }
+        StudentVO studentVO = BeanUtil.copyProperties(student, StudentVO.class);
+        return Result.ok(studentVO);
+    }
+
+    // endregion
+
+
     // region student-manage-methods
 
     // 获取指定班级所有学生
     @Operation(summary = "获取指定班级所有学生")
     @GetMapping("/get/{classId}")
     public Result getStudentsByClassId(@PathVariable Long classId) {
-        List<Student> students = teachClassService.getStudentsByClassId(classId);
-        return Result.ok(students);
+        List<StudentVO> studentVOS = teachClassService.getStudentsByClassId(classId);
+        return Result.ok(studentVOS);
     }
 
     // 根据姓名获取指定班级学生
     @Operation(summary = "根据姓名获取某班学生")
     @PostMapping("/get/name/{classId}")
     public Result getStudentsByName(@PathVariable Long classId, @RequestParam String name) {
-        List<Student> studentsByClassId = teachClassService.getStudentsByClassId(classId);
-        Student student = studentsByClassId.stream()
+        List<StudentVO> studentVOSByClassId = teachClassService.getStudentsByClassId(classId);
+        StudentVO studentVO = studentVOSByClassId.stream()
                 .filter(s -> s.getUsername().equals(name))
                 .findFirst()
                 .orElse(null);
-        return student != null ? Result.ok(student) :Result.fail("该学生不存在");
+        return studentVO != null ? Result.ok(studentVO) :Result.fail("该学生不存在");
     }
 
     // 新增一个学生到指定班级

@@ -1,5 +1,6 @@
 package cn.xyt.codehub.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.TeacherDTO;
 import cn.xyt.codehub.entity.Assignment;
@@ -10,6 +11,7 @@ import cn.xyt.codehub.service.AssignmentService;
 import cn.xyt.codehub.service.TeachClassService;
 import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.MailUtil;
+import cn.xyt.codehub.vo.TeacherVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/teacher")
@@ -62,7 +65,11 @@ public class TeacherController {
     @GetMapping("/get/{id}")
     public Result getTeacher(@PathVariable Long id) {
         Teacher teacher = teacherService.getById(id);
-        return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
+        if (teacher == null) {
+            return Result.fail("教师不存在");
+        }
+        TeacherVO teacherVO = BeanUtil.copyProperties(teacher, TeacherVO.class);
+        return Result.ok(teacherVO);
     }
 
     // 根据教师名称查询教师信息
@@ -72,7 +79,11 @@ public class TeacherController {
         QueryWrapper<Teacher> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", name);
         Teacher teacher = teacherService.getOne(queryWrapper);
-        return teacher != null ? Result.ok(teacher) : Result.fail("教师信息不存在");
+        if (teacher == null) {
+            return Result.fail("教师不存在");
+        }
+        TeacherVO teacherVO = BeanUtil.copyProperties(teacher, TeacherVO.class);
+        return Result.ok(teacherVO);
     }
 
     // 查询所有教师信息
@@ -80,7 +91,10 @@ public class TeacherController {
     @GetMapping("/list")
     public Result listTeachers() {
         List<Teacher> teachers = teacherService.list();
-        return Result.ok(teachers);
+        List<TeacherVO> teacherVOS = teachers.stream()
+                .map(teacher -> BeanUtil.copyProperties(teacher, TeacherVO.class))
+                .toList();
+        return Result.ok(teacherVOS);
     }
 
 

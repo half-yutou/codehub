@@ -1,8 +1,7 @@
 package cn.xyt.codehub.service;
 
-import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.TeachClassDTO;
-import cn.xyt.codehub.entity.Student;
+import cn.xyt.codehub.vo.StudentVO;
 import cn.xyt.codehub.vo.TeachClassVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import cn.xyt.codehub.entity.TeachClass;
@@ -14,7 +13,7 @@ import java.util.List;
 public interface TeachClassService extends IService<TeachClass> {
     void flushStudentCount(Long classId);
 
-    List<Student> getStudentsByClassId(Long classId);
+    List<StudentVO> getStudentsByClassId(Long classId);
 
     boolean addSingleStudentToClass(Long classId, String studentNumber);
 
