@@ -95,6 +95,7 @@ public class StudentController {
 
     // 导入Excel批量增加学生
     @Operation(summary = "导入Excel批量增加学生")
+    @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
     @PostMapping("/import/class/{classId}")
     public Result importStudents(@PathVariable Long classId, @RequestParam("file") MultipartFile file) throws IOException {
         return teachClassService.importStudents(classId, file)

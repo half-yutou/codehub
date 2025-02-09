@@ -117,6 +117,7 @@ public class SubmissionController {
      * 提交作业文件
      */
     @Operation(summary = "上传作业")
+    @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
     @PostMapping("/upload")
     public Result uploadSubmission(@RequestParam("files") MultipartFile[] files,
                                    @RequestParam("assignmentId") Long assignmentId,

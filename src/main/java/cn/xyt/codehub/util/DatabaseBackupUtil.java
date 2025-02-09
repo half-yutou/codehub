@@ -24,8 +24,10 @@ public class DatabaseBackupUtil {
         String backupFile = backupDir + File.separator + database + "_" + timestamp + ".sql";
 
         // mysqldump 命令
-        String command = String.format("mysqldump -h%s -P%s -u%s -p%s %s --result-file=%s",
-                host, port, username, password, database, backupFile);
+        String command = String.format(
+                "mysqldump -h%s -P%s -u%s -p%s --single-transaction %s --result-file=%s",
+                host, port, username, password, database, backupFile
+        );
 
         // 执行命令
         Process process = Runtime.getRuntime().exec(command);
