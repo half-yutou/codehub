@@ -1,5 +1,6 @@
 package cn.xyt.codehub.controller;
 
+import cn.xyt.codehub.dto.DownloadSubDTO;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.entity.Submission;
 import cn.xyt.codehub.service.SubmissionService;
@@ -136,9 +137,17 @@ public class SubmissionController {
      */
     // endregion
     @Operation(summary = "下载作业附件")
-    @GetMapping("/download/{fileName}")
-    public ResponseEntity<?> downloadSubmission(@PathVariable String fileName) {
-        File file = new File(submitDir + File.separator + fileName);
+    @PostMapping("/download")
+    public ResponseEntity<?> downloadSubmission(@RequestBody DownloadSubDTO SubDTO) {
+        String fileName = SubDTO.getFileName();
+        Long classId = SubDTO.getClassId();
+        Long assignmentId = SubDTO.getAssignmentId();
+        Long studentId = SubDTO.getStudentId();
+        File file = new File(submitDir
+                + File.separator + classId
+                + File.separator + assignmentId
+                + File.separator + studentId
+                + File.separator + fileName);
         if (!file.exists()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Result.fail("文件不存在！"));
         }
