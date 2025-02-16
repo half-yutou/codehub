@@ -18,7 +18,7 @@ public class CodeReviewUtil {
 
     private static final Pattern SIMILARITY_PATTERN = Pattern.compile("(\\d+)\\s*%");
 
-    private static final int THRESHOLD = 80;
+    private static final int THRESHOLD = 70;
 
     public static CodeReviewDTO codeReview(String command, String firstFilePath, String secondFilePath) throws IOException, InterruptedException {
 

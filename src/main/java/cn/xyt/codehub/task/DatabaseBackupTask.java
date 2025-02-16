@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-@Component
+// @Component
 public class DatabaseBackupTask {
 
     @Value("${task.database.host}")
@@ -41,9 +41,9 @@ public class DatabaseBackupTask {
     public void autoBackup() {
         try {
             String backupFile = DatabaseBackupUtil.backupDatabase(host, port, username, password, database, backupDir);
-            logger.info("数据库备份成功，备份文件：" + backupFile);
+            logger.info("数据库备份成功，备份文件：{}", backupFile);
         } catch (IOException e) {
-            logger.error("定时备份失败：" + e.getMessage());
+            logger.error("定时备份失败：{}", e.getMessage());
         }
     }
 }

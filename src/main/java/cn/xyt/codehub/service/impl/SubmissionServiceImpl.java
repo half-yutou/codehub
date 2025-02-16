@@ -177,7 +177,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             for (File studentDir : parentDir.listFiles()) {
                 if (studentDir.getName().equals(studentId.toString())) continue;
                 for (File otherStudentFile : studentDir.listFiles()) {
-                    if (otherStudentFile.getName().endsWith(".cpp")) {
+                    if (otherStudentFile.getName().endsWith(".java")) {
                             try {
                                 CodeReviewDTO codeReviewDTO = CodeReviewUtil.codeReview(
                                         command,
@@ -236,7 +236,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             CodeReviewReport codeReviewReport = BeanUtil.copyProperties(dto, CodeReviewReport.class);
             codeReviewReportMapper.insert(codeReviewReport);
         }).exceptionally(e -> {
-            logger.error("codeReview 异常: " + e.getMessage());
+            logger.error("codeReview 异常: {}", e.getMessage());
             return null;
         });
     }

@@ -18,4 +18,4 @@ task:
 submit:
   dir: /var/www/project-java/codehub-submit
   review:
-    command: /usr/bin/sim_c++
+    command: /usr/bin/sim_java

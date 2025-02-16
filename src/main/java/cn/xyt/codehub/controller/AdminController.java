@@ -1,5 +1,7 @@
 package cn.xyt.codehub.controller;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.xyt.codehub.dto.CourseDTO;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.SemesterDTO;
 import cn.xyt.codehub.entity.Course;
@@ -9,6 +11,7 @@ import cn.xyt.codehub.service.AdminService;
 import cn.xyt.codehub.service.CourseService;
 import cn.xyt.codehub.service.SemesterService;
 import cn.xyt.codehub.service.TeacherService;
+import cn.xyt.codehub.task.DynamicTaskService;
 import cn.xyt.codehub.util.DatabaseBackupUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,6 +66,9 @@ public class AdminController {
 
     @Resource
     private CourseService courseService;
+
+    @Resource
+    private DynamicTaskService dynamicTaskService;
 
 
     // region database-backup-methods
@@ -138,6 +144,22 @@ public class AdminController {
         return Result.ok(fileList);
     }
 
+    /**
+     * 更改自动备份时间
+     */
+    @Operation(summary = "更改自动备份时间")
+    @PostMapping("/updateCron")
+    public Result updateCron(@RequestParam int hour, @RequestParam int min) {
+        // 简单验证参数合法性
+        if (hour < 0 || hour > 23 || min < 0 || min > 59) {
+            return Result.fail("小时必须在0-23之间，分钟必须在0-59之间");
+        }
+        // 构造 cron 表达式，格式为：秒 分 时 日 月 星期
+        String cron = String.format("0 %d %d * * ?", min, hour);
+        dynamicTaskService.updateCronExpression(cron);
+        return Result.ok();
+    }
+
 
     // endregion
 
@@ -168,6 +190,29 @@ public class AdminController {
         List<Course> list = courseService.list(
                 new QueryWrapper<Course>().orderByAsc("semester_id"));
         return Result.ok(list);
+    }
+
+    /**
+     * 添加课程
+     * @param courseDTO 课程对象
+     */
+    @Operation(summary = "添加课程")
+    @PostMapping("/course/add")
+    public Result addCourse(@RequestBody CourseDTO courseDTO) {
+        Course course = BeanUtil.copyProperties(courseDTO, Course.class);
+        boolean result = courseService.save(course);
+        return result ? Result.ok("添加成功") : Result.fail("添加失败");
+    }
+
+    /**
+     * 删除课程
+     * @param id 课程ID
+     */
+    @Operation(summary = "删除课程")
+    @DeleteMapping("/course/delete/{id}")
+    public Result deleteCourse(@PathVariable Long id) {
+        boolean result = courseService.removeById(id);
+        return result ? Result.ok("删除成功") : Result.fail("删除失败");
     }
 
     // endregion
