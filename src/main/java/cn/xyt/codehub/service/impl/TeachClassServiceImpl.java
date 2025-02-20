@@ -165,8 +165,8 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
     }
 
     @Override
-    public List<TeachClassVO> getTeachClassByStudentId(Long studentId) {
-        List<StudentClass> studentClasses = studentClassMapper.selectList(new QueryWrapper<StudentClass>().eq("student_id", studentId));
+    public List<TeachClassVO> getTeachClassByStudentNumber(Long studentNumber) {
+        List<StudentClass> studentClasses = studentClassMapper.selectList(new QueryWrapper<StudentClass>().eq("student_number", studentNumber));
         ArrayList<TeachClassVO> teachClassVOS = new ArrayList<>();
         studentClasses.forEach(studentClass -> {
             TeachClassVO teachClassVO = BeanUtil.copyProperties(getById(studentClass.getClassId()), TeachClassVO.class);

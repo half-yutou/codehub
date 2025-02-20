@@ -1,18 +1,20 @@
 package cn.xyt.codehub.controller;
 
 import cn.xyt.codehub.dto.Result;
+import cn.xyt.codehub.dto.StudentExcelDTO;
 import cn.xyt.codehub.dto.TeachClassDTO;
-import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.TeachClass;
 import cn.xyt.codehub.service.SemesterService;
 import cn.xyt.codehub.service.TeachClassService;
+import cn.xyt.codehub.util.ExcelUtil;
 import cn.xyt.codehub.vo.TeachClassVO;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -70,11 +72,13 @@ public class TeachClassController {
 
     // 查询学生所有教学班级
     @Operation(summary = "查询该学生所有教学班级")
-    @GetMapping("/list/student/{studentId}")
-    public Result listTeachClassesByStudentId(@PathVariable Long studentId) {
-        List<TeachClassVO> teachClassesVO =teachClassService.getTeachClassByStudentId(studentId);
+    @GetMapping("/list/student/{studentNumber}")
+    public Result listTeachClassesByStudentId(@PathVariable Long studentNumber) {
+        List<TeachClassVO> teachClassesVO =teachClassService.getTeachClassByStudentNumber(studentNumber);
         return Result.ok(teachClassesVO);
     }
+
+
 
     // endregion
 }

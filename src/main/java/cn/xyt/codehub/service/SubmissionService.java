@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface SubmissionService extends IService<Submission> {
 
-    void handleFileUpload(MultipartFile[] files, Long assignmentId, Long studentId, Long classId);
+    void handleFileUpload(MultipartFile[] files, String content, Long assignmentId, Long studentId, Long classId);
 
     List<Submission> getSubmissionsByClassId(Long classId);
 

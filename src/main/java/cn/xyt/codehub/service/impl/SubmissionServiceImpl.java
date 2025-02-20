@@ -6,14 +6,19 @@ import cn.xyt.codehub.entity.CodeReviewReport;
 import cn.xyt.codehub.entity.Submission;
 import cn.xyt.codehub.mapper.CodeReviewReportMapper;
 import cn.xyt.codehub.mapper.SubmissionMapper;
+import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.SubmissionService;
+import cn.xyt.codehub.service.TeachClassService;
+import cn.xyt.codehub.service.TeacherService;
 import cn.xyt.codehub.util.CodeReviewUtil;
+import cn.xyt.codehub.util.MailUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -49,12 +54,21 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     @Resource
     private SubmissionMapper submissionMapper;
 
+    @Resource
+    private MailUtil mailUtil;
+
     private final Executor executor = Executors.newFixedThreadPool(10);
+    @Autowired
+    private TeacherService teacherService;
+    @Autowired
+    private TeachClassService teachClassService;
+    @Autowired
+    private StudentService studentService;
 
     // region upload
 
     @Override
-    public void handleFileUpload(MultipartFile[] files, Long assignmentId, Long studentId, Long classId) {
+    public void handleFileUpload(MultipartFile[] files, String content, Long assignmentId, Long studentId, Long classId) {
         // 创建存储目录
         File studentDir = getFile(assignmentId, studentId, classId);
         // 清空之前的提交记录
@@ -68,12 +82,12 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                 // 判断文件类型是否为压缩文件
                 if (isZipFile(multipartFile)) {
                     // 解压缩文件并保存
-                    unzipFile(multipartFile, studentDir, "GBK", studentId, assignmentId, classId);
+                    unzipFile(multipartFile, studentDir, "GBK", studentId, assignmentId, classId, content);
                 } else {
                     // 普通文件保存
                     File destination = new File(studentDir, multipartFile.getOriginalFilename());
                     multipartFile.transferTo(destination);
-                    saveSubmitInfo(destination.getName(), studentId, assignmentId, classId);
+                    saveSubmitInfo(destination.getName(), content, studentId, assignmentId, classId);
                 }
             } catch (IOException e) {
                 throw new RuntimeException("文件上传失败: " + multipartFile.getOriginalFilename());
@@ -104,7 +118,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         return studentDir;
     }
 
-    public void unzipFile(MultipartFile zipFile, File destination, String charsetName, Long studentId, Long assignmentId, Long classId) throws IOException {
+    public void unzipFile(MultipartFile zipFile, File destination, String charsetName, Long studentId, Long assignmentId, Long classId, String content) throws IOException {
         // 确保目标文件夹存在
         if (!destination.exists() && !destination.mkdirs()) {
             throw new IOException("Failed to create destination directory: " + destination.getAbsolutePath());
@@ -136,7 +150,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
                         bos.write(buffer, 0, len);
                     }
                 }
-                saveSubmitInfo(newFile.getName(), studentId, assignmentId, classId);
+                saveSubmitInfo(newFile.getName(), content, studentId, assignmentId, classId);
             }
         }
     }
@@ -154,7 +168,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     }
 
 
-    private void saveSubmitInfo(String fileName, Long studentId, Long assignmentId, Long classId) {
+    private void saveSubmitInfo(String fileName, String content, Long studentId, Long assignmentId, Long classId) {
         Submission submission = new Submission();
         submission.setAssignmentId(assignmentId);
         submission.setStudentId(studentId);
@@ -162,6 +176,7 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         submission.setFilename(fileName);
         submission.setSubmittedAt(LocalDateTime.now());
         submission.setStatus("查重中");
+        submission.setContent(content);
         this.save(submission);
         this.codeReview(fileName, assignmentId, studentId, classId);
     }
@@ -235,6 +250,13 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             // 并且将报告记录于code_review_report表中
             CodeReviewReport codeReviewReport = BeanUtil.copyProperties(dto, CodeReviewReport.class);
             codeReviewReportMapper.insert(codeReviewReport);
+            // 并且将报告发送给教师邮箱
+            Long teacherId = teachClassService.getById(classId).getTeacherId();
+            String email = teacherService.getById(teacherId).getEmail();
+            mailUtil.sendMail(
+                    email,
+                    "查重报告",
+                    "学号" + studentService.getById(studentId).getStudentNumber() + "的学生的提交" + fileName + "被查重不通过,请及时查看");
         }).exceptionally(e -> {
             logger.error("codeReview 异常: {}", e.getMessage());
             return null;

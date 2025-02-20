@@ -14,7 +14,9 @@ public class Submission {
     private Long assignmentId;     // 作业ID
     private Long studentId;        // 学生ID
     private Long classId;          // 班级ID
+    private String content;        // 作业正文
     private String filename;       // 文件名
     private LocalDateTime submittedAt; // 提交时间
     private String status;         // 状态 (e.g., SUBMITTED)
+    private Integer score;
 }

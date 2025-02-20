@@ -11,6 +11,7 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
 @RestController
@@ -121,15 +124,29 @@ public class SubmissionController {
     @CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
     @PostMapping("/upload")
     public Result uploadSubmission(@RequestParam("files") MultipartFile[] files,
+                                   @RequestParam("content") String content,
                                    @RequestParam("assignmentId") Long assignmentId,
                                    @RequestParam("studentId") Long studentId,
                                    @RequestParam("classId") Long classId) {
         try {
-            submissionService.handleFileUpload(files, assignmentId, studentId, classId);
+            submissionService.handleFileUpload(files, content, assignmentId, studentId, classId);
             return Result.ok("作业提交成功！");
         } catch (Exception e) {
             return Result.fail("作业提交失败");
         }
+    }
+
+    /**
+     * 给作业评分
+     */
+    @Operation(summary = "给作业评分")
+    @PutMapping("/score/{id}/{score}")
+    public Result scoreSubmission(@PathVariable Long id, @PathVariable Integer score) {
+        boolean success = submissionService.update()
+                .eq("id", id)
+                .set("score", score)
+                .update();
+        return success ? Result.ok("作业评分成功！") : Result.fail("作业评分失败！");
     }
 
     /**
@@ -166,5 +183,36 @@ public class SubmissionController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Result.fail("文件下载失败：" + e.getMessage()));
         }
+    }
+
+
+    /**
+     * 返回代码文件的原始内容（纯文本）
+     */
+    @Operation(summary = "预览附件代码(纯文本)")
+    @PostMapping("/preview/code")
+    public ResponseEntity<String> getCodeContent(@RequestBody DownloadSubDTO SubDTO) {
+        String fileName = SubDTO.getFileName();
+        Long classId = SubDTO.getClassId();
+        Long assignmentId = SubDTO.getAssignmentId();
+        Long studentId = SubDTO.getStudentId();
+        File file = new File(submitDir
+                + File.separator + classId
+                + File.separator + assignmentId
+                + File.separator + studentId
+                + File.separator + fileName);
+        if (!file.exists()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("文件不存在！");
+        }
+        String code;
+        try {
+            code = Files.readString(file.toPath());
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("读取文件出错");
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(code);
     }
 }

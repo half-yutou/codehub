@@ -29,7 +29,7 @@ public interface TeachClassService extends IService<TeachClass> {
 
     List<TeachClassVO> getTeachClassByTeacherId(Long teacherId);
 
-    List<TeachClassVO> getTeachClassByStudentId(Long studentId);
+    List<TeachClassVO> getTeachClassByStudentNumber(Long studentNumber);
 
     // endregion
 

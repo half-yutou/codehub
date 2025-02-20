@@ -14,13 +14,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public Result handleRuntimeException(RuntimeException ex) {
-        log.error("RuntimeException: " + ex.getMessage());
+        log.error(ex.toString());
         return Result.fail("Server error: " + ex.getMessage());
     }
 
     @ExceptionHandler(SQLException.class)
     public Result handleSQLException(SQLException ex) {
-        log.error("SQLException: " + ex.getMessage());
+        log.error("SQLException: {}", ex.getMessage());
         return Result.fail("Database error: " + ex.getMessage());
     }
 }

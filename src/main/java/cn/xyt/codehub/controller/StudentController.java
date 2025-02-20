@@ -1,10 +1,14 @@
 package cn.xyt.codehub.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.xyt.codehub.dto.Result;
+import cn.xyt.codehub.dto.StudentExcelDTO;
+import cn.xyt.codehub.dto.StudentInfo;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.service.StudentService;
 import cn.xyt.codehub.service.TeachClassService;
+import cn.xyt.codehub.util.ExcelUtil;
 import cn.xyt.codehub.vo.StudentVO;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +30,18 @@ public class StudentController {
 
     @Resource
     private StudentService studentService;
+
+    @Operation(summary = "修改学生信息")
+    @PostMapping("/update")
+    public Result updateStudent(@RequestParam("id") String id,
+                                @RequestParam(value = "email", required = false) String email,
+                                @RequestParam(value = "phone", required = false) String phone) {
+        Student student = studentService.getById(id);
+        if (!StrUtil.isBlank(email)) student.setEmail(email);
+        if (!StrUtil.isBlank(phone)) student.setPhone(phone);
+        boolean isUpdated = studentService.updateById(student);
+        return isUpdated ? Result.ok("更新学生信息成功") : Result.fail("更新学生信息失败");
+    }
 
     // region student-crud-method
     @Operation(summary = "根据学生id获取学生信息")
@@ -101,6 +117,14 @@ public class StudentController {
         return teachClassService.importStudents(classId, file)
                 ? Result.ok("导入成功")
                 : Result.fail("导入失败");
+    }
+
+    @Operation(summary = "测试文件上传")
+    @PostMapping("/import/class/test")
+    public Result testPart(@RequestParam("file") MultipartFile file) throws IOException {
+        List<StudentExcelDTO> studentExcelDTOS = ExcelUtil.readExcel(file, StudentExcelDTO.class);
+        studentExcelDTOS.forEach(System.out::println);
+        return Result.ok("导入成功");
     }
 
     // endregion

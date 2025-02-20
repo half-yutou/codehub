@@ -19,6 +19,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -64,6 +65,17 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Override
     public void resetCurrentSemester() {
         semesterMapper.resetCurrentSemester();
+        // 并且自动检测时间设置学期
+        List<Semester> semesters = semesterMapper.selectList(null);
+        LocalDate now = LocalDate.now();
+        for (Semester semester : semesters) {
+            LocalDate startDate = semester.getStartDate();
+            LocalDate endDate = semester.getEndDate();
+            if (now.isAfter(startDate) && now.isBefore(endDate)) {
+                semesterMapper.updateCurrentSemester(semester.getId());
+                break;
+            }
+        }
     }
 
     // endregion

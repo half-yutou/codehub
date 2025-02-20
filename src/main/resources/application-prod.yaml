@@ -5,6 +5,11 @@ spring:
     username: root
     password: mysql0618
 
+server:
+  tomcat:
+    #设定tomcat的basedir目录，如果没有指定则使用临时目录
+    basedir: /var/www/project-java/tomcat/temp
+
 task:
   database:
     host: localhost
