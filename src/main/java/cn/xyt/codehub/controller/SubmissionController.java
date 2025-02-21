@@ -2,12 +2,15 @@ package cn.xyt.codehub.controller;
 
 import cn.xyt.codehub.dto.DownloadSubDTO;
 import cn.xyt.codehub.dto.Result;
+import cn.xyt.codehub.entity.DeepseekEvaluation;
 import cn.xyt.codehub.entity.Submission;
+import cn.xyt.codehub.mapper.DeepseekEvaluationMapper;
 import cn.xyt.codehub.service.SubmissionService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,6 +37,8 @@ public class SubmissionController {
 
     @Resource
     private SubmissionService submissionService;
+    @Autowired
+    private DeepseekEvaluationMapper deepseekEvaluationMapper;
 
 
     // region submission-CRUD-methods
@@ -214,5 +219,12 @@ public class SubmissionController {
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(code);
+    }
+
+    @Operation(summary = "获取指定提交的deepseek评价")
+    @GetMapping("/deepseek/{submissionId}")
+    public Result getDeepSeek(@PathVariable Long submissionId) {
+        DeepseekEvaluation evaluation = deepseekEvaluationMapper.selectOne(new QueryWrapper<DeepseekEvaluation>().eq("submission_id", submissionId));
+        return evaluation != null ? Result.ok(evaluation.getEvaluation()) : Result.fail("未获取到deepseek评价,请检查submissionId是否正确");
     }
 }

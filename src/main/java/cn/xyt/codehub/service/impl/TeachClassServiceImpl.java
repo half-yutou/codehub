@@ -119,14 +119,14 @@ public class TeachClassServiceImpl extends ServiceImpl<TeachClassMapper, TeachCl
         // 读取 Excel 文件
         List<StudentExcelDTO> studentList = ExcelUtil.readExcel(file, StudentExcelDTO.class);
 
-        // 转换 Student 实体并保存到数据库
-        List<Student> newStudents = studentList.stream()
-                .map(dto -> BeanUtil.copyProperties(dto, Student.class))
-                .collect(Collectors.toList());
-        studentService.saveBatch(newStudents);
+//        // 转换 Student 实体并保存到数据库
+//        List<Student> newStudents = studentList.stream()
+//                .map(dto -> BeanUtil.copyProperties(dto, Student.class))
+//                .collect(Collectors.toList());
+//        studentService.saveBatch(newStudents);
 
         // 更新关联关系到中间表 student_class
-        List<StudentClass> studentClasses = newStudents.stream()
+        List<StudentClass> studentClasses = studentList.stream()
                 .map(student -> new StudentClass(student.getStudentNumber(), classId))
                 .collect(Collectors.toList());
         studentClassService.saveBatch(studentClasses);

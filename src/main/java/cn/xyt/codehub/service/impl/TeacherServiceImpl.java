@@ -3,10 +3,7 @@ package cn.xyt.codehub.service.impl;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
-import cn.xyt.codehub.dto.LoginDTO;
-import cn.xyt.codehub.dto.RegisterDTO;
-import cn.xyt.codehub.dto.Result;
-import cn.xyt.codehub.dto.TeacherDTO;
+import cn.xyt.codehub.dto.*;
 import cn.xyt.codehub.entity.Student;
 import cn.xyt.codehub.entity.Teacher;
 import cn.xyt.codehub.mapper.TeacherMapper;
@@ -41,6 +38,11 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
 
     @Override
     public Result register(RegisterDTO registerDTO) {
+        // 判断数据库中是否有该用户
+        Teacher t = getOne(new QueryWrapper<Teacher>()
+                .eq("username", registerDTO.getUsername()));
+        if (t != null)
+            return Result.fail("用户名已存在");
         Teacher teacher = BeanUtil.copyProperties(registerDTO, Teacher.class);
         teacher.setPassword(MD5Util.encrypt(registerDTO.getPassword()));
         return save(teacher) ? Result.ok() : Result.fail("注册失败");
@@ -51,5 +53,16 @@ public class TeacherServiceImpl extends ServiceImpl<TeacherMapper, Teacher> impl
         Teacher teacher = BeanUtil.copyProperties(teacherDTO, Teacher.class);
         teacher.setPassword(MD5Util.encrypt(teacherDTO.getPassword()));
         return save(teacher);
+    }
+
+    @Override
+    public Result changePassword(ChangePasswordDTO changePasswordDTO) {
+        Teacher teacher = getOne(new QueryWrapper<Teacher>()
+                .eq("username", changePasswordDTO.getUsername()));
+        if (teacher == null || !MD5Util.encrypt(changePasswordDTO.getOldPassword())
+                .equals(teacher.getPassword()))
+            return Result.fail("用户名不存在或旧密码错误");
+        teacher.setPassword(MD5Util.encrypt(changePasswordDTO.getNewPassword()));
+        return updateById(teacher) ? Result.ok() : Result.fail("修改密码失败");
     }
 }

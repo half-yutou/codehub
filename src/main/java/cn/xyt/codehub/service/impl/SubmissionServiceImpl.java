@@ -2,15 +2,16 @@ package cn.xyt.codehub.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.xyt.codehub.dto.CodeReviewDTO;
+import cn.xyt.codehub.entity.Assignment;
 import cn.xyt.codehub.entity.CodeReviewReport;
+import cn.xyt.codehub.entity.DeepseekEvaluation;
 import cn.xyt.codehub.entity.Submission;
 import cn.xyt.codehub.mapper.CodeReviewReportMapper;
+import cn.xyt.codehub.mapper.DeepseekEvaluationMapper;
 import cn.xyt.codehub.mapper.SubmissionMapper;
-import cn.xyt.codehub.service.StudentService;
-import cn.xyt.codehub.service.SubmissionService;
-import cn.xyt.codehub.service.TeachClassService;
-import cn.xyt.codehub.service.TeacherService;
+import cn.xyt.codehub.service.*;
 import cn.xyt.codehub.util.CodeReviewUtil;
+import cn.xyt.codehub.util.DeepSeekUtil;
 import cn.xyt.codehub.util.MailUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
@@ -46,6 +47,10 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     @Value("${submit.review.command}")
     private String command; // 可执行文件的路径
 
+    @Value("${deepseek.apiKey}")
+    private String apiKey;
+
+
     Logger logger = LoggerFactory.getLogger(SubmissionServiceImpl.class);
 
     @Resource
@@ -64,6 +69,10 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
     private TeachClassService teachClassService;
     @Autowired
     private StudentService studentService;
+    @Autowired
+    private AssignmentService assignmentService;
+    @Autowired
+    private DeepseekEvaluationMapper deepseekEvaluationMapper;
 
     // region upload
 
@@ -179,6 +188,24 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
         submission.setContent(content);
         this.save(submission);
         this.codeReview(fileName, assignmentId, studentId, classId);
+
+
+        CompletableFuture.runAsync(() -> {
+            Submission curSubmission = this.getOne(new QueryWrapper<Submission>().eq("assignment_id", assignmentId).eq("student_id", studentId).eq("class_id", classId));
+            String deepseeked = deepseekCheck(assignmentId, content);
+            // 将结果存到数据表deepseek (id, submissionId, evaluation)
+            deepseekEvaluationMapper.insert(new DeepseekEvaluation(null, curSubmission.getId(), deepseeked));
+        }, executor);
+
+    }
+
+    private String deepseekCheck(Long assignmentId, String content) {
+        // 先从数据库获取assign信息
+        Assignment assignment = assignmentService.getById(assignmentId);
+        String description = assignment.getDescription();
+        String res = "作业描述" + description + "\n学生提交内容" + content;
+        DeepSeekUtil deepSeekUtil = new DeepSeekUtil();
+        return deepSeekUtil.chatCompletion(apiKey, res);
     }
 
     private void codeReview(String fileName, Long assignmentId, Long studentId, Long classId) {
@@ -226,7 +253,6 @@ public class SubmissionServiceImpl extends ServiceImpl<SubmissionMapper, Submiss
             pass.setStudentId(studentId);
             return pass;
         }, executor).thenAccept(dto -> {
-            logger.debug("进入 thenAccept");
             if (!dto.isOverThreshold()) {
                 logger.debug("进入 dto.isOverThreshold() == false");
                 // 修改该提交状态为查重通过

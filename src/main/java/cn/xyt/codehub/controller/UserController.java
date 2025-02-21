@@ -1,6 +1,7 @@
 package cn.xyt.codehub.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
+import cn.xyt.codehub.dto.ChangePasswordDTO;
 import cn.xyt.codehub.dto.LoginDTO;
 import cn.xyt.codehub.dto.RegisterDTO;
 import cn.xyt.codehub.dto.Result;
@@ -57,5 +58,19 @@ public class UserController {
     public Result logout() {
         StpUtil.logout();
         return Result.ok();
+    }
+
+    /**
+     * 更改密码
+     */
+    @Operation(summary = "更改密码")
+    @PostMapping("/changePassword")
+    public Result changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
+        String role = changePasswordDTO.getRole();
+        return switch (role) {
+            case "teacher" -> teacherService.changePassword(changePasswordDTO);
+            case "student" -> studentService.changePassword(changePasswordDTO);
+            default -> Result.fail("请重试");
+        };
     }
 }

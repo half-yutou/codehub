@@ -31,17 +31,6 @@ public class StudentController {
     @Resource
     private StudentService studentService;
 
-    @Operation(summary = "修改学生信息")
-    @PostMapping("/update")
-    public Result updateStudent(@RequestParam("id") String id,
-                                @RequestParam(value = "email", required = false) String email,
-                                @RequestParam(value = "phone", required = false) String phone) {
-        Student student = studentService.getById(id);
-        if (!StrUtil.isBlank(email)) student.setEmail(email);
-        if (!StrUtil.isBlank(phone)) student.setPhone(phone);
-        boolean isUpdated = studentService.updateById(student);
-        return isUpdated ? Result.ok("更新学生信息成功") : Result.fail("更新学生信息失败");
-    }
 
     // region student-crud-method
     @Operation(summary = "根据学生id获取学生信息")
@@ -119,13 +108,18 @@ public class StudentController {
                 : Result.fail("导入失败");
     }
 
-    @Operation(summary = "测试文件上传")
-    @PostMapping("/import/class/test")
-    public Result testPart(@RequestParam("file") MultipartFile file) throws IOException {
-        List<StudentExcelDTO> studentExcelDTOS = ExcelUtil.readExcel(file, StudentExcelDTO.class);
-        studentExcelDTOS.forEach(System.out::println);
-        return Result.ok("导入成功");
+    @Operation(summary = "修改学生信息")
+    @PostMapping("/update/class/{id}")
+    public Result updateStudentInfo(@PathVariable("id") Long id,
+                                    @RequestParam(value = "phone", required = false) String phone,
+                                    @RequestParam(value = "email", required = false) String email) {
+        Student student = studentService.getById(id);
+        if (!StrUtil.isBlank(phone)) student.setPhone(phone);
+        if (!StrUtil.isBlank(email)) student.setEmail(email);
+        boolean isUpdated = studentService.updateById(student);
+        return isUpdated ? Result.ok("更新学生信息成功") : Result.fail("更新学生信息失败");
     }
+
 
     // endregion
 }

@@ -1,9 +1,8 @@
 package cn.xyt.codehub.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.xyt.codehub.dto.CourseDTO;
-import cn.xyt.codehub.dto.Result;
-import cn.xyt.codehub.dto.SemesterDTO;
+import cn.hutool.core.util.StrUtil;
+import cn.xyt.codehub.dto.*;
 import cn.xyt.codehub.entity.Course;
 import cn.xyt.codehub.entity.Semester;
 import cn.xyt.codehub.entity.Teacher;
@@ -69,6 +68,9 @@ public class AdminController {
 
     @Resource
     private DynamicTaskService dynamicTaskService;
+
+    @Resource
+    private TeacherService teacherService;
 
 
     // region database-backup-methods
@@ -213,6 +215,25 @@ public class AdminController {
     public Result deleteCourse(@PathVariable Long id) {
         boolean result = courseService.removeById(id);
         return result ? Result.ok("删除成功") : Result.fail("删除失败");
+    }
+
+    /**
+     *  管理教师信息
+     */
+    @Operation(summary = "管理教师信息")
+    @PostMapping("/teacher/manage")
+    // 姓名 电话 邮箱 学院
+    public Result manageTeacher(@RequestBody TeacherManageDTO teacherDTO) {
+        // 从数据库获取用户
+        Teacher teacher = teacherService.getById(teacherDTO.getId());
+        if (teacher == null) return Result.fail("用户不存在");
+        if (!StrUtil.isBlank(teacherDTO.getUsername())) teacher.setUsername(teacherDTO.getUsername());
+        if (!StrUtil.isBlank(teacherDTO.getPhone())) teacher.setPhone(teacherDTO.getPhone());
+        if (!StrUtil.isBlank(teacherDTO.getEmail())) teacher.setEmail(teacherDTO.getEmail());
+        if (!StrUtil.isBlank(teacherDTO.getDepartment())) teacher.setDepartment(teacherDTO.getDepartment());
+
+        boolean result = teacherService.updateById(teacher);
+        return result ? Result.ok("添加成功") : Result.fail("添加失败");
     }
 
     // endregion

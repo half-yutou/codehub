@@ -1,5 +1,6 @@
 package cn.xyt.codehub.service;
 
+import cn.xyt.codehub.dto.ChangePasswordDTO;
 import cn.xyt.codehub.dto.LoginDTO;
 import cn.xyt.codehub.dto.RegisterDTO;
 import cn.xyt.codehub.dto.Result;
@@ -10,4 +11,6 @@ public interface StudentService extends IService<Student> {
     Result login(LoginDTO loginDTO);
 
     Result register(RegisterDTO registerDTO);
+
+    Result changePassword(ChangePasswordDTO changePasswordDTO);
 }

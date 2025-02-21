@@ -59,3 +59,6 @@ knife4j:
 
 sa-token:
   token-style: simple-uuid
+
+deepseek:
+  apiKey: sk-acdac75fab464822a58d09d5e5d357da

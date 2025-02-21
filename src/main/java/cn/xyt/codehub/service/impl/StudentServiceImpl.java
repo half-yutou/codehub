@@ -3,6 +3,7 @@ package cn.xyt.codehub.service.impl;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.bean.BeanUtil;
+import cn.xyt.codehub.dto.ChangePasswordDTO;
 import cn.xyt.codehub.dto.LoginDTO;
 import cn.xyt.codehub.dto.RegisterDTO;
 import cn.xyt.codehub.dto.Result;
@@ -41,8 +42,25 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student> impl
 
     @Override
     public Result register(RegisterDTO registerDTO) {
+        // 判断用户名是否重复
+        Student s = getOne(new QueryWrapper<Student>()
+                .eq("username", registerDTO.getUsername()));
+        if (s != null)
+            return Result.fail("用户名重复");
         Student student = BeanUtil.copyProperties(registerDTO, Student.class);
         student.setPassword(MD5Util.encrypt(registerDTO.getPassword()));
         return save(student) ? Result.ok() : Result.fail("注册失败");
+    }
+
+    @Override
+    public Result changePassword(ChangePasswordDTO changePasswordDTO) {
+        // 从数据库查询有无用户
+        Student student = getOne(new QueryWrapper<Student>()
+                .eq("username", changePasswordDTO.getUsername()));
+        if (student == null || !MD5Util.encrypt(changePasswordDTO.getOldPassword())
+                .equals(student.getPassword()))
+            return Result.fail("用户名不存在或旧密码错误");
+        student.setPassword(MD5Util.encrypt(changePasswordDTO.getNewPassword()));
+        return updateById(student) ? Result.ok() : Result.fail("修改失败");
     }
 }

@@ -1,6 +1,7 @@
 package cn.xyt.codehub.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.xyt.codehub.dto.Result;
 import cn.xyt.codehub.dto.TeacherDTO;
 import cn.xyt.codehub.entity.Assignment;
@@ -54,8 +55,13 @@ public class TeacherController {
 
     // 修改教师信息
     @Operation(summary = "修改教师信息")
-    @PutMapping("/update")
-    public Result updateTeacher(@RequestBody Teacher teacher) {
+    @PutMapping("/update/{id}")
+    public Result updateTeacher(@PathVariable Long id,
+                                @RequestParam(required = false) String phone,
+                                @RequestParam(required = false) String email) {
+        Teacher teacher = teacherService.getById(id);
+        if (!StrUtil.isBlank(phone)) teacher.setPhone(phone);
+        if (!StrUtil.isBlank(email)) teacher.setEmail(email);
         boolean isUpdated = teacherService.updateById(teacher);
         return isUpdated ? Result.ok("更新教师信息成功") : Result.fail("更新教师信息失败");
     }
